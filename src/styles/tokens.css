@@ -1,0 +1,113 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   NOCTURNAL ATELIER v3.2 — TOKENS  (light field)
+   Source of truth: CMAS docs/pages/index-q-design-system.html, which is
+   generated from the prototype docs/pages/index-q.html. Names match the
+   prototype (peri, haze, ink, wash, edge, TONE.ok …) so a token means the
+   same thing in CMAS and in veles.
+
+   Two layers:
+   1. @theme   → registers colors, radius, type scale, shadows with Tailwind
+                 (bg-ink, text-ink2, border-edge, rounded-lg, shadow-card …)
+   2. :root    → density and motion helpers
+   Dark mode lives in dark.css. The design system only specifies six dark
+   values (see that file); the rest are derived there and marked as such.
+   ═══════════════════════════════════════════════════════════════════════ */
+@theme {
+  /* ── CORE RAMP · Periwinkle → Charcoal ── */
+  --color-peri: #c8cdeb;
+  --color-cool: #878cb4;
+  --color-haze: #465078;
+  --color-mid: #1e233c;
+  --color-char: #0a0f19;
+
+  /* ── SUB-PALETTE · charts, Bloom/SOLO levels, decoration only.
+        Never for buttons, text or borders (design system rule). ── */
+  --color-fgray: #b8bed7;
+  --color-csub: #afaecc;
+  --color-mount: #85758f;
+  --color-ev1: #524e68;
+  --color-ev2: #44405a;
+
+  /* ── SURFACES & LINES ── */
+  --color-card: #ffffff;
+  --color-wash: #f4f5fa;
+  --color-field: #e9eaf4;
+  --color-tint: #eeeff8;
+  --color-edge: #e4e5f0;
+  --color-edge2: #edeef6;
+  --color-sel-bg: #e9ebf5;
+  --color-head: #f6f7fc;
+  --color-blank: #f9f3e6;
+
+  /* ── TEXT & FOCUS ──
+     ink 15.4:1 AAA · ink2 7.9:1 AAA · ink-soft 6.1:1 AA · sel/focus 7.8:1 AAA
+     dim 3.3:1 is AA-large only and faint 2.6:1 fails: use them for big type,
+     icons and decoration, never for body-size text. */
+  --color-ink: #1e233c;
+  --color-ink2: #4a5070;
+  --color-ink-soft: #5b6180;
+  --color-dim: #878cb4;
+  --color-faint: #9aa0be;
+  --color-sel: #465078;
+  --color-focus: #465078;
+
+  /* ── STATUS TONES · TONE.* ── bg · tx · bar. tx on bg is AA only for warn,
+        bad, info; ok is AA-large, so long text on a tone uses ink2 instead. */
+  --color-ok-bg: #e7efea;
+  --color-ok: #4f7c68;
+  --color-ok-bar: #6e9c87;
+  --color-ok-bd: #bcd3c6;
+  --color-warn-bg: #f4eee1;
+  --color-warn: #7d6430;
+  --color-warn-bar: #c7a860;
+  --color-bad-bg: #f4e8e8;
+  --color-bad: #a2504f;
+  --color-bad-bar: #b96f6e;
+  --color-bad-bd: #dcbaba;
+  --color-info-bg: #e9ecf6;
+  --color-info: #4a5a86;
+  --color-info-bar: #8c97be;
+  --color-nil-bg: #f1f2f8;
+  --color-nil: #878cb4;
+  --color-nil-bar: #c8cdeb;
+
+  /* ── TYPE · IBM Plex Sans Thai + Inter ── */
+  --font-sans: "IBM Plex Sans Thai", "Inter", system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  /* Sizes are the ones the prototype uses most (14px ×222, 13px ×128). */
+  --text-display: clamp(28px, 4vw, 30px);
+  --text-h1: 28px;
+  --text-h2: 22px;
+  --text-h3: 18px;
+  --text-h4: 16px;
+  --text-body-lg: 15px;
+  --text-body: 14px;
+  --text-body-sm: 13px;
+  --text-label: 12.5px;
+  --text-caption: 12px;
+  --text-overline: 11px;
+  --text-code: 13px;
+
+  /* ── RADIUS · xs 6 · sm 10 · (default) 14 · lg 18 · xl 24 · 2xl 28 ── */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+
+  /* ── ELEVATION · soft · card · pop ── */
+  --shadow-soft: 0 1px 2px rgba(30, 35, 60, 0.03), 0 6px 20px -10px rgba(30, 35, 60, 0.1);
+  --shadow-card: 0 1px 2px rgba(30, 35, 60, 0.04), 0 14px 44px -14px rgba(30, 35, 60, 0.13);
+  --shadow-pop: 0 2px 6px rgba(30, 35, 60, 0.06), 0 24px 60px -18px rgba(30, 35, 60, 0.28);
+}
+
+:root {
+  /* ── DENSITY · table row padding: compact 5 · normal 10 · comfortable 15 ── */
+  --row-py: 10px;
+
+  --focus-ring: 0 0 0 3px rgba(70, 80, 120, 0.28);
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration: 160ms;
+}

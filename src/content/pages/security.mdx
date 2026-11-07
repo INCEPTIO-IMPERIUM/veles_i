@@ -1,0 +1,212 @@
+import { AuthzDemo } from "@/features/security/AuthzDemo";
+import { Checklist } from "@/components/Checklist";
+import { Quiz } from "@/components/Quiz";
+import { Sorter } from "@/components/Sorter";
+
+# Security
+
+ระบบนี้เก็บข้อมูลจริงของนักศึกษา (ชื่อ รหัสนักศึกษา คะแนน) และบัญชีอาจารย์กับแอดมิน ทีมมีแค่ 3 คน ไม่มีทีม security แยก ทุกคนจึงต้องเป็นคนตรวจกันเอง
+
+<Simple>
+
+ลองนึกถึงการดูแลหอพัก: (1) **กุญแจห้ามหลุดมือ** (ความลับต้องไม่หลุดออกจากโค้ด) (2) **ยามต้องเช็กทั้งว่าคุณเป็นใคร และว่าคุณมีสิทธิ์เข้าห้องนี้ไหม** ไม่ใช่แค่เช็กว่ามีบัตร (3) **ไม่เชื่อของที่ส่งมา** ไม่ว่าจะเป็นพัสดุหรือข้อมูล ต้องเปิดตรวจก่อนนำไปใช้ หน้านี้แบ่งตามสามเรื่องนี้
+
+</Simple>
+
+<Detail>
+
+กฎอยู่ใน `security-rule.md` และ `capabilities.ts` ของ CMAS ทุก PR ที่แตะ auth, การเข้าถึงข้อมูล หรือการอัปโหลดไฟล์ ต้องผ่าน checklist ท้ายหน้านี้ก่อน merge ส่วนการตรวจอัตโนมัติ (secret scan, CodeQL, dependency review) อยู่ในหน้า [CI/CD](/ci)
+
+</Detail>
+
+## 1. ความลับต้องไม่หลุด
+
+| ทำ | ห้ามทำ |
+| --- | --- |
+| เก็บความลับใน `.env` เท่านั้น (`DATABASE_URL`, `JWT_SECRET` …) | commit `.env`, `.env.local`, `.env.production` ลง Git |
+| ใช้ `.env.example` เป็นแม่แบบที่มีแต่ค่า placeholder | ฝังความลับในโค้ด เช่น `const JWT_SECRET = "..."` |
+| สร้าง `JWT_SECRET` ด้วย `openssl rand -base64 32` (256 บิตขึ้นไป) | ส่ง `.env` ผ่านแชทหรืออีเมล |
+| เปลี่ยนความลับทันทีเมื่อสงสัยว่ารั่ว | ใช้ความลับเดียวกันข้าม dev / staging / production |
+
+ก่อน commit ทุกครั้ง ดูด้วย `git status` และ `git diff --staged` ว่าไม่มีไฟล์ความลับติดมา ลองจัดของแต่ละอย่างว่า commit หรือแชร์ได้ไหม
+
+<Sorter
+  prompt="commit หรือแชร์ได้ไหม"
+  choices={[
+    { id: "ok", label: "ได้" },
+    { id: "no", label: "ห้าม" },
+  ]}
+  items={[
+    { text: "ไฟล์ .env ที่ใส่ DATABASE_URL จริงไว้", answer: "no", why: "มีรหัสผ่านฐานข้อมูลอยู่ข้างใน ห้าม commit เด็ดขาด (.env อยู่ใน .gitignore แล้ว)" },
+    { text: "ไฟล์ .env.example ที่มีแต่ค่า placeholder เช่น [random-256-bit-string]", answer: "ok", why: "เป็นแม่แบบไม่มีค่าจริง ต้อง commit เพื่อให้คนอื่นรู้ว่าต้องตั้งค่าอะไร" },
+    { text: 'const JWT_SECRET = "abc123" ในไฟล์โค้ด', code: true, answer: "no", why: "ห้ามฝังความลับในโค้ด ต้องอ่านจาก process.env เท่านั้น และ abc123 ก็สั้นเกินกว่าระบบจะยอมรับ" },
+    { text: "วาง DATABASE_URL ในแชทกลุ่มให้เพื่อนใช้", answer: "no", why: "ส่งความลับผ่านแชทหรืออีเมลไม่ได้ ใช้ password manager หรือที่เก็บความลับของทีม" },
+    { text: "ไฟล์ migration ใหม่ที่ npm run db:migrate:dev สร้างให้", answer: "ok", why: "migration คือประวัติโครงสร้างฐานข้อมูล ต้องอยู่ใน Git เพื่อให้ทุกเครื่องตามทัน" },
+    { text: "โฟลเดอร์ node_modules/ และ dist/", answer: "no", why: "เป็นไฟล์ที่สร้างอัตโนมัติ ห้าม commit ทำให้ repo รกและมีของที่ไม่ควรอยู่" },
+  ]}
+/>
+
+<Warning title="ถ้าความลับหลุดไปแล้ว">
+
+การลบบรรทัดออกจากโค้ดไม่พอ เพราะประวัติ Git ยังเห็นได้ ต้อง **เปลี่ยนค่านั้นทันที** (revoke แล้วออกใหม่) แล้วแจ้งทีม
+
+</Warning>
+
+## 2. รู้ว่าคุณเป็นใคร ไม่เท่ากับรู้ว่าคุณทำอะไรได้
+
+<Simple>
+
+**Authentication** คือการเช็กว่า "คุณเป็นใคร" (บัตรประชาชน) ส่วน **Authorization** คือเช็กว่า "คุณมีสิทธิ์ทำสิ่งนี้ไหม" (กุญแจห้องนี้) มีบัตรที่ถูกต้องไม่ได้แปลว่าเปิดได้ทุกห้อง ลองดูว่าคำขอผ่านกี่ด่าน แล้วจะถูกหยุดที่ด่านไหน
+
+</Simple>
+
+<Detail>
+
+คำขอเดินตามลำดับ: rate limit → `authMiddleware` (401) → ตรวจรูปแบบ `courseId` → `authorize()` (404 ถ้ามองไม่เห็นรายวิชา, 403 ถ้าเห็นแต่ role ไม่มี capability) → handler ทุก route ต้องประกาศ `config: { access }` เป็น `"public"`, `"authenticated"` หรือ `{ cap }` จาก `capabilities.ts` ถ้าไม่ประกาศ server จะไม่ยอมเริ่มทำงาน
+
+</Detail>
+
+<AuthzDemo />
+
+<Example title="กฎของ CMAS ที่เห็นจากตัวอย่างด้านบน">
+
+(1) ขอบเขตข้อมูลเดียวคือ **รายวิชา** ADMIN เห็นทุกรายวิชา อาจารย์เห็นเฉพาะวิชาที่ได้รับมอบหมาย (2) รายวิชาที่ไม่ควรเห็นตอบ **404 เสมอ ไม่ใช่ 403** (3) ADMIN เปิดและลบรายวิชา มอบหมายอาจารย์ และจัดการบัญชีได้ แต่ **ไม่ทำงานสอน** (คะแนน นักศึกษา CLO กิจกรรม เกรด) ตามมติ D-1 (4) `authMiddleware` อ่านแถว User จริงจากฐานข้อมูลทุกครั้ง ไม่เชื่อ role ที่เขียนอยู่ใน token
+
+</Example>
+
+<Detail>
+
+```typescript
+// ❌ ผิด: เชื่อ courseId จาก client ไม่เช็กว่าเป็นของอาจารย์คนนี้จริงไหม
+async updateClo(courseId: string, cloId: string, data: UpdateCloInput) {
+  return this.cloRepo.update(cloId, data)
+}
+
+// ✅ ถูก: เช็ก ownership ก่อนแก้ไขเสมอ ไม่ใช่เช็กแค่ role
+async updateClo(userId: string, courseId: string, cloId: string, data: UpdateCloInput) {
+  const course = await this.courseRepo.findById(courseId)
+  if (course.instructorId !== userId) throw new ForbiddenError()
+  return this.cloRepo.update(cloId, data)
+}
+```
+
+เรื่อง token: ลงนามด้วย secret จาก `process.env.JWT_SECRET` เท่านั้น ต้องมี `JWT_EXPIRES_IN` เสมอ (access 15 นาที + refresh 7 วัน) ห้ามเก็บใน `localStorage` แบบดิบถ้าเลี่ยงได้ และห้าม verify token เองใน controller (ให้ผ่าน `authMiddleware`) ส่วนรหัสผ่าน (ถ้ามี) ต้อง hash ด้วย `argon2` ยาวอย่างน้อย 8 ตัวอักษร (ตรวจด้วย Zod) และห้าม log รหัสผ่านหรือ hash
+
+</Detail>
+
+## 3. ไม่เชื่อสิ่งที่ส่งมา
+
+<Simple>
+
+ข้อมูลทุกอย่างที่มาจากผู้ใช้ รวมถึงไฟล์ Excel ที่อัปโหลด อาจผิดพลาดหรือจงใจโจมตี ต้อง "เปิดตรวจ" ก่อนนำไปใช้เสมอ
+
+</Simple>
+
+- ตรวจทุก request (body, param, query) ด้วย **Zod** ที่ชั้น validator ก่อนถึง service
+- ไฟล์ Excel ตรวจนามสกุล ขนาด จำนวนแถวสูงสุด และเนื้อหาทีละแถว ก่อนประมวลผล
+- ใช้ Prisma query builder (ป้องกัน SQL injection ให้โดยปริยาย) ห้ามใช้ `$queryRaw` ถ้าไม่จำเป็น ถ้าจำเป็นต้อง parameterized (`Prisma.sql`) ห้ามต่อสตริง
+- ห้ามใช้ `dangerouslySetInnerHTML` กับข้อมูลที่มาจากผู้ใช้ ให้ React escape ให้ตามปกติ
+
+## 4. ข้อมูลที่ไม่ควรหลุดออกไป
+
+- response ต้องไม่มี field ที่ละเอียดอ่อน เช่น `passwordHash` ใช้ `select` เลือกเฉพาะที่จำเป็นเสมอ
+- production ต้องตอบ error แบบทั่วไป ห้ามเผย stack trace หรือ query จริง (`NODE_ENV=production`)
+- log ฝั่ง server ห้ามมี รหัสผ่าน, JWT เต็ม และข้อมูลนักศึกษาโดยละเอียด (เก็บแค่ id)
+- ห้ามมี endpoint แบบ public ที่ดึงข้อมูลนักศึกษาได้ ข้อมูลนักศึกษาเข้าถึงได้เฉพาะผู้ใช้ที่ล็อกอินและมีสิทธิ์ตามรายวิชา
+
+## 5. เครือข่าย และ package
+
+| เรื่อง | กติกา |
+| --- | --- |
+| CORS | `CORS_ORIGIN` ใส่เฉพาะโดเมนหน้าเว็บจริง (แยกค่าตาม dev / preview / prod) ห้ามตั้ง `*` ใน production |
+| HTTPS | production ใช้ HTTPS เท่านั้น ห้าม downgrade เป็น HTTP |
+| Rate limit | อย่างน้อยกับ `POST /auth/login` และ `POST /scores/batch` กัน brute-force และการใช้งานเกินปกติ |
+| package ใหม่ | ก่อนเพิ่ม ดู `npm audit` จำนวนดาวน์โหลด และวันที่อัปเดตล่าสุดคร่าวๆ |
+| ช่องโหว่ใน package | แก้ระดับ high / critical ก่อน deploy ห้าม pin package จาก fork ที่ไม่รู้จักหรือ URL แปลกๆ |
+
+<Warning title="security-rule.md เขียนว่า pnpm audit">
+
+เอกสารต้นฉบับยังเขียนว่า `pnpm audit` แต่โปรเจกต์ใช้ **npm workspaces** จึงใช้ `npm audit` และ CI ก็ตรวจ signature, dependency review และ secret scan ให้อัตโนมัติ (ดูหน้า [CI/CD](/ci))
+
+</Warning>
+
+## 6. เช็กลิสต์สำหรับ PR ที่แตะ auth, ข้อมูล หรืออัปโหลด
+
+ใช้ก่อน merge ทุกครั้ง ระบบจำที่ติ๊กไว้ในเบราว์เซอร์นี้
+
+<Checklist
+  id="pr-security"
+  groups={[
+    {
+      items: [
+        { id: "no-secret", text: "ไม่มีความลับหลุดในโค้ดหรือใน log" },
+        { id: "access", text: "endpoint ใหม่ประกาศ config.access และใช้ capability ที่ตรงกับงาน" },
+        { id: "ownership", text: "มีการเช็ก ownership ไม่ใช่แค่ role" },
+        { id: "zod", text: "ตรวจ input ด้วย Zod ครบทุกจุดเข้า (body, param, query, ไฟล์ที่อัปโหลด)" },
+        { id: "response", text: "response ไม่มี field ที่ละเอียดอ่อนหลุดออกไป" },
+        { id: "no-raw-sql", text: "ไม่มี raw SQL แบบต่อสตริง" },
+        { id: "no-stack", text: "การจัดการ error ไม่เผย stack trace ใน production" },
+      ],
+    },
+  ]}
+/>
+
+## 7. เมื่อพบช่องโหว่หรือเหตุการณ์ผิดปกติ
+
+<Steps>
+
+1. **หยุดและแจ้งทันที** ในกลุ่มทีมและเจ้าของโปรเจกต์ ห้ามเงียบแล้วแก้เอง
+2. ถ้าความลับหลุด (เช่น commit ไป GitHub) **เปลี่ยนความลับนั้นทันที** ไม่ใช่แค่ revert commit
+3. บันทึกว่าเกิดอะไร สาเหตุ และวิธีแก้ ไว้ในรายงานประจำสัปดาห์
+4. ห้าม deploy โค้ดแก้ช่องโหว่โดยไม่ผ่าน review จากอีก 1 คน แม้จะด่วน ให้ใช้ขั้นตอน hotfix ในหน้า [Git](/git)
+
+</Steps>
+
+## ทดสอบความเข้าใจ
+
+<Quiz
+  questions={[
+    {
+      q: "อาจารย์ A ขอดูรายวิชาของอาจารย์ B (มีอยู่จริง) ระบบควรตอบอะไร",
+      options: ["200 พร้อมข้อมูล", "403 ไม่มีสิทธิ์", "404 ไม่พบ", "401 ยังไม่ได้ล็อกอิน"],
+      answer: 2,
+      why: "ตอบ 404 เหมือนกรณีไม่มีรายวิชา เพราะ 403 ยืนยันว่ารหัสนี้มีอยู่จริง ซึ่งเปิดช่องให้เดารหัสของคนอื่น",
+    },
+    {
+      q: "ADMIN ต้องการแก้ CLO ของรายวิชาที่ตัวเองเห็น ผลเป็นอย่างไร",
+      options: ["ทำได้ เพราะ ADMIN มีสิทธิ์ทุกอย่าง", "ถูกปฏิเสธ เพราะ ADMIN ไม่ทำงานสอน (D-1)", "ตอบ 404", "ตอบ 401"],
+      answer: 1,
+      why: "ADMIN เปิด/ลบรายวิชาและจัดการบัญชีได้ แต่ clo.write เป็นสิทธิ์ของ INSTRUCTOR เท่านั้น เพราะเห็นรายวิชาอยู่แล้ว จึงตอบ 403 ตรงๆ",
+    },
+    {
+      q: "ผู้ใช้ส่ง courseId มากับ request ควรทำอย่างไรกับมัน",
+      options: ["เชื่อได้ เพราะ token ถูกต้อง", "ตรวจว่าผู้เรียกมีสิทธิ์กับรายวิชานั้นจริง ไม่เชื่อ id จาก client", "เก็บไว้ใน localStorage", "ข้ามไปใช้ role อย่างเดียว"],
+      answer: 1,
+      why: "Authentication ไม่ใช่ Authorization ต้องเช็กความเป็นเจ้าของ (ownership) ทุกครั้ง",
+    },
+    {
+      q: "เผลอ commit DATABASE_URL จริงขึ้น GitHub แล้วรีบลบบรรทัดและ push ใหม่ พอไหม",
+      options: ["พอ เพราะบรรทัดหายแล้ว", "ไม่พอ ต้องเปลี่ยนรหัสผ่านฐานข้อมูลทันที เพราะประวัติ Git ยังเห็นค่าเดิม", "พอ ถ้า force push", "พอ ถ้าไม่มีใครเห็น"],
+      answer: 1,
+      why: "ประวัติ commit ยังเก็บค่าเดิมไว้ ต้องถือว่ารั่วแล้ว: เปลี่ยนค่าทันที แล้วแจ้งทีม",
+    },
+    {
+      q: "ข้อไหนทำให้ response ปลอดภัยขึ้น",
+      options: ["ส่ง object จาก Prisma ตรงๆ ให้ client", "ใช้ select เลือกเฉพาะ field ที่จำเป็น", "ส่ง stack trace กลับไปด้วยเพื่อให้แก้ง่าย", "ซ่อน field ด้วย CSS"],
+      answer: 1,
+      why: "select ทำให้ passwordHash และ field ละเอียดอ่อนไม่ถูกดึงออกมาตั้งแต่ต้น",
+    },
+    {
+      q: "จะให้ผู้ใช้อัปโหลดไฟล์ Excel ต้องตรวจอะไรบ้าง",
+      options: ["ตรวจเฉพาะนามสกุล", "ตรวจนามสกุล ขนาด จำนวนแถวสูงสุด และเนื้อหาทีละแถว", "ไม่ต้องตรวจ เพราะผู้ใช้เป็นอาจารย์", "ให้ client ตรวจอย่างเดียว"],
+      answer: 1,
+      why: "ข้อมูลจากไฟล์ก็คือ input จากผู้ใช้ ต้องตรวจฝั่ง server ครบทุกชั้นก่อนบันทึก",
+    },
+  ]}
+/>
+
+## อ่านต่อ
+
+- ค่าตั้งค่าและความลับที่ต้องใช้ตอนเริ่มโปรเจกต์: [ตั้งค่าวันแรก](/setup)
+- การตรวจความปลอดภัยอัตโนมัติ: [CI/CD](/ci)
+- การรีวิวโค้ดที่แตะ auth: [PR & Code Review](/review)

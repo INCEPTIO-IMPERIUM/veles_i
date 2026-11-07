@@ -1,0 +1,231 @@
+import { GitFlow } from "@/features/git/GitFlow";
+import { BranchNameCheck } from "@/features/git/BranchNameCheck";
+import { CommitBuilder } from "@/features/git/CommitBuilder";
+import { ConflictDemo } from "@/features/git/ConflictDemo";
+import { Quiz } from "@/components/Quiz";
+
+# Git
+
+Git คือเครื่องมือที่จำประวัติการแก้ไขโค้ดทุกครั้ง และให้หลายคนทำงานในโปรเจกต์เดียวกันได้โดยไม่เขียนทับกัน หน้านี้อธิบายทั้งตัว Git และ **กติกาที่ทีมตกลงกัน** ว่าจะใช้อย่างไร
+
+<Simple>
+
+ลองนึกถึงรายงานกลุ่มใน Google Docs ที่ 3 คนแก้พร้อมกัน ถ้าทุกคนพิมพ์ลงไฟล์เดียวกันสดๆ เนื้อหาจะปนกันและใครทำพังก็พังทั้งกลุ่ม Git แก้ปัญหานี้โดยให้ **ทุกคนทำงานบนสำเนาของตัวเอง** แล้วค่อยรวมสำเนาเข้าด้วยกันทีละชิ้น หลังจากเพื่อนช่วยอ่านตรวจแล้ว
+
+คำที่ต้องรู้มี 4 คำ: <Term id="repository">repository</Term> (ที่เก็บโปรเจกต์พร้อมประวัติ), <Term id="commit">commit</Term> (บันทึกงานหนึ่งครั้ง), <Term id="branch">branch</Term> (สำเนาที่แยกไปทำงาน) และ <Term id="merge">merge</Term> (รวมสำเนากลับ)
+
+</Simple>
+
+<Detail>
+
+ทีมใช้ <Term id="git-flow">Git Flow</Term> ที่ปรับให้เหมาะกับทีม 3 คน หลักเดียวที่ต้องจำ: **ทุก branch แตกจากและ merge กลับเข้า `develop`** ส่วน `main` รับได้เฉพาะ `release/*` กับ `hotfix/*`
+
+| Branch | แตกจาก | merge เข้า | บทบาท |
+| --- | --- | --- | --- |
+| `main` | - | - | โค้ดที่ปล่อยแล้ว เสถียรที่สุด ทุก commit มี tag เวอร์ชัน **ห้าม commit ตรง** |
+| `develop` | `main` | - | ที่รวมงานพัฒนา เป็น default branch **ห้าม commit ตรง** |
+| `feature/*` `fix/*` `chore/*` `docs/*` `ci/*` `test/*` | `develop` | `develop` | 1 เรื่องต่อ 1 branch |
+| `release/x.y.z` | `develop` | `main` แล้ว back-merge `develop` | เตรียมออกเวอร์ชัน แก้ได้เฉพาะบั๊ก |
+| `hotfix/*` | `main` | `main` แล้ว back-merge `develop` | แก้บั๊กด่วนบนของที่ปล่อยแล้ว |
+| `dependabot/*` | `develop` | `develop` | Dependabot เปิดให้เอง |
+
+</Detail>
+
+## 3 branch ที่ต้องรู้จัก
+
+<Simple>
+
+- **main** คือของที่ผู้ใช้ใช้อยู่จริง ต้องไม่พัง ไม่มีใครแตะตรงๆ
+- **develop** คือกองกลางที่ทีมรวมงานที่ผ่านการตรวจแล้ว
+- **feature/ชื่องาน** คือสำเนาของเราเอง ทำอะไรก็ได้ ไม่กระทบใคร
+
+งานของเราเดินทางจาก feature ไป develop และนานๆ ครั้งทีมจะยก develop ขึ้น main เป็นเวอร์ชันใหม่
+
+</Simple>
+
+<Detail>
+
+ระบบบังคับให้ ไม่ต้องพึ่งความจำ: `main` และ `develop` ใช้ ruleset เดียวกัน คือต้องผ่าน PR, ต้องมี approval 1 คน (เจ้าของ PR approve เองไม่ได้), ต้องผ่านเช็ก `CI gate`, ห้าม force push และห้ามลบ branch
+
+</Detail>
+
+<Example>
+
+PR ที่เปิดเข้า `main` ผิดกติกา (ที่มาไม่ใช่ `develop`, `release/*`, `hotfix/*`) จะถูกปฏิเสธโดย job `Git Flow branch rule` ใน `ci.yml` ถ้าเผลอเปิดผิด **ไม่ต้องปิด PR** กดปุ่ม Edit ข้างชื่อ PR แล้วเปลี่ยนปลายทางเป็น `develop` ได้เลย
+
+</Example>
+
+## เดินตามสถานการณ์จริง
+
+เลือกสถานการณ์ แล้วกด "ถัดไป" ดูว่าแต่ละขั้น branch เปลี่ยนอย่างไร เส้นประคือการ merge วงกลมโปร่งตรงกลางคือ merge commit
+
+<GitFlow />
+
+## ตั้งชื่อ branch
+
+ชื่อ branch ตั้งผิดกติกา ปกติไม่ error แต่ทำให้ทีมงงว่างานนี้คืออะไร ลองพิมพ์ชื่อด้านล่างเพื่อดูว่าผ่านกติกาไหม
+
+<BranchNameCheck />
+
+## เขียน commit message
+
+<Simple>
+
+commit message คือโน้ตสั้นๆ ที่เขียนติดไปกับการบันทึกงานแต่ละครั้ง เพื่อให้อีก 3 เดือนข้างหน้า (หรือเพื่อนที่เพิ่งเข้าทีม) อ่านแล้วรู้ว่า **ใครทำอะไร เพราะอะไร** โดยไม่ต้องเปิดโค้ดดู
+
+</Simple>
+
+<Detail>
+
+รูปแบบคือ `<ประเภท>: <คำอธิบายสั้นๆ>` ใช้ประเภทตามตาราง (กดที่ปุ่มด้านล่างเพื่อดูตัวอย่าง) เขียนให้ `git log` อ่านรู้เรื่อง
+
+</Detail>
+
+<CommitBuilder />
+
+| ไม่ดี | ดี |
+| --- | --- |
+| `update` | `chore: อัปเดต vite เป็นเวอร์ชันล่าสุด` |
+| `แก้บั๊ก` | `fix: แก้บั๊กปุ่มบันทึกไม่ทำงานบนมือถือ` |
+| `เพิ่มหน้าใหม่ แก้ css แก้ api ลบไฟล์เก่า` | แยกเป็น 4 commit ตามเรื่อง |
+
+## เมื่อเจอ conflict
+
+<Simple>
+
+<Term id="conflict">Conflict</Term> ไม่ใช่ความผิดพลาด มันเกิดตามปกติเมื่อสองคนแก้บรรทัดเดียวกัน Git ไม่รู้ว่าควรเชื่อใคร เลยหยุดแล้วให้คนมาตัดสิน ลองเลือกด้านล่างว่าจะทำอย่างไร
+
+</Simple>
+
+<Detail>
+
+Git ใส่เครื่องหมาย `<<<<<<<` `=======` `>>>>>>>` ลงในไฟล์ ขั้นตอนแก้: เปิดไฟล์ที่ Git แจ้ง → ตัดสินใจว่าเก็บฝั่งไหน หรือผสม หรือเขียนใหม่ → ลบเครื่องหมายทั้งสามออกให้หมด → `git add <ไฟล์>` → `git commit`
+
+</Detail>
+
+<ConflictDemo />
+
+<Warning title="กติกาทีมเรื่อง conflict">
+
+ถ้า conflict ชนกับโค้ดของเพื่อนโดยตรง **คุยกับเจ้าของโค้ดก่อน** ตัดสินใจทิ้งฝั่งใดฝั่งหนึ่ง ห้ามตัดสินใจคนเดียวเงียบๆ และห้ามแก้ conflict ด้วยการลบโค้ดของเพื่อนทิ้งโดยไม่ปรึกษา
+
+</Warning>
+
+## ดูประวัติ
+
+<Simple>
+
+ก่อนเริ่มงานและก่อน merge ควรดูภาพรวมว่าตอนนี้ branch ต่างๆ อยู่ตรงไหน เหมือนดูแผนที่ก่อนเดินทาง Git มีคำสั่งวาดแผนที่นี้ให้ในรูปแบบตัวอักษร
+
+</Simple>
+
+<Detail>
+
+```bash
+git log --oneline --graph --all --decorate   # ภาพรวม branch ทั้งหมดแบบกระชับ
+git diff <branch1> <branch2>                 # เทียบความต่างระหว่าง branch
+git diff --staged                            # เช็กว่ากำลังจะ commit อะไร
+git --no-pager log --all --graph --oneline --decorate   # ไม่ผ่าน pager (less)
+```
+
+</Detail>
+
+## ก่อนกด merge: Pull Request Checklist
+
+- Pull `develop` ล่าสุดมา merge เข้า branch ตัวเองแล้ว ไม่มี conflict ค้าง
+- โค้ดรันได้จริง ไม่มี error ที่เห็นชัด
+- Commit message สื่อความหมาย อ่านแล้วเข้าใจว่าทำอะไร
+- มีเพื่อนร่วมทีมอย่างน้อย 1 คน Review และกด Approve
+- ลบ branch ทิ้งหลัง merge เสร็จ
+
+ดูรายละเอียดวิธีรีวิวในหน้า [PR & Code Review](/review)
+
+## ควรทำ / ไม่ควรทำ
+
+| ควรทำ | ไม่ควรทำ |
+| --- | --- |
+| Pull ก่อนเริ่มงานทุกครั้ง เพื่อลด conflict | push ตรงเข้า `main` หรือ `develop` |
+| Commit บ่อยๆ เป็นก้อนเล็ก | `git push --force` บน branch ที่ใช้ร่วมกัน |
+| ตั้งชื่อ branch และ commit ให้สื่อความหมาย | Commit ไฟล์ขยะ เช่น `node_modules/`, `.env`, ไฟล์ส่วนตัว |
+| แจ้งในกลุ่มแชททุกครั้งที่เปิด PR หรือเจอ conflict ใหญ่ | แก้ conflict โดยลบโค้ดเพื่อนทิ้งโดยไม่ปรึกษา |
+| ใช้ merge commit ทุก PR | squash หรือ rebase PR (โดยเฉพาะที่เข้า `main` และ back-merge) |
+
+<Warning title="ทำไมห้าม squash PR ที่เข้า main และ back-merge">
+
+squash ยุบหลาย commit เป็นก้อนเดียวและตัดสายประวัติ ทำให้ `main` กับ `develop` มีประวัติคนละสาย PR ถัดไปจะเจอ conflict ซ้ำของเดิม ทีมจึงใช้ merge commit เสมอ
+
+</Warning>
+
+<Detail>
+
+ตั้งค่า `.gitignore` ตั้งแต่ก่อน commit แรกของโปรเจกต์ ตัวอย่างขั้นต่ำ:
+
+```gitignore
+node_modules/
+.env
+__pycache__/
+*.log
+.DS_Store
+```
+
+ถ้าไม่ถนัด Vim ตอน commit ให้ตั้ง editor อื่น (Windows):
+
+```bash
+git config --global core.editor "notepad.exe"
+```
+
+</Detail>
+
+## ทดสอบความเข้าใจ
+
+<Quiz
+  questions={[
+    {
+      q: "จะเริ่มทำฟีเจอร์ใหม่ ต้องแตก branch จากที่ไหน",
+      options: ["main", "develop", "branch ของเพื่อนที่ทำงานคล้ายกัน", "ที่ไหนก็ได้"],
+      answer: 1,
+      why: "ทุก branch งานแตกจาก develop และ merge กลับ develop มีแค่ hotfix ที่แตกจาก main",
+    },
+    {
+      q: "เปิด PR ของ feature ให้ชี้ไปที่ branch ไหน",
+      options: ["main", "release", "develop", "branch ไหนก็ได้ที่ว่าง"],
+      answer: 2,
+      why: "PR ของงานปกติเข้า develop เสมอ ถ้าเปิดเข้า main ผิด ให้กด Edit เปลี่ยนปลายทางได้ ไม่ต้องปิด PR",
+    },
+    {
+      q: "แก้ hotfix แล้ว merge เข้า main เรียบร้อย ขั้นที่ห้ามลืมคือข้อไหน",
+      options: ["ลบ branch main", "ส่งการแก้กลับเข้า develop ผ่าน PR", "ไม่ต้องทำอะไรอีก", "รอรอบ release ถัดไป"],
+      answer: 1,
+      why: "ถ้าไม่ back-merge develop จะไม่มีการแก้นี้ และบั๊กตัวเดิมจะกลับมาในรอบถัดไป",
+    },
+    {
+      q: "PR ของทีมนี้ merge ด้วยวิธีไหน",
+      options: ["squash", "rebase", "merge commit", "แล้วแต่ใจคนกด"],
+      answer: 2,
+      why: "ใช้ merge commit เสมอ เพื่อไม่ให้ประวัติหายและไม่ให้ main กับ develop แตกประวัติจากกัน",
+    },
+    {
+      q: "เจอ conflict ในไฟล์ที่เพื่อนเขียนไว้ ควรทำอย่างไร",
+      options: [
+        "เลือกฝั่งของเราไปก่อน แล้วค่อยบอกทีหลัง",
+        "ลบโค้ดของเพื่อนทิ้งให้หมด",
+        "คุยกับเจ้าของโค้ดก่อนตัดสินใจ",
+        "ปิด PR แล้วเริ่มใหม่",
+      ],
+      answer: 2,
+      why: "กติกาทีม: ห้ามตัดสินใจคนเดียวเงียบๆ ถ้าชนกับโค้ดเพื่อนโดยตรง ต้องคุยกับเจ้าของก่อน",
+    },
+    {
+      q: "commit message ข้อไหนตรงกติกาทีม",
+      options: ["update", "แก้", "feat: เพิ่มระบบล็อกอินด้วยอีเมล", "Fixed stuff."],
+      answer: 2,
+      why: "รูปแบบคือ ประเภท: คำอธิบายสั้นๆ ที่บอกว่าทำอะไร ไม่คลุมเครือ และไม่ลงท้ายด้วยจุด",
+    },
+  ]}
+/>
+
+## อ่านต่อ / ฝึกเพิ่ม
+
+- ฝึกใช้ Git branch แบบ interactive: [learngitbranching.js.org](https://learngitbranching.js.org/)
+- รันโปรเจกต์ครั้งแรกยังไม่ได้ตั้งค่า? ไปหน้า [ตั้งค่าวันแรก](/setup)
+- ระบบตรวจอัตโนมัติที่ทำงานทุกครั้งที่เปิด PR อยู่ในหน้า [CI/CD](/ci)

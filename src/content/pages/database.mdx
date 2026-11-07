@@ -1,0 +1,210 @@
+import { MigrationTimeline } from "@/features/database/MigrationTimeline";
+import { modelGroups } from "@/features/database/migrations.data";
+import { Quiz } from "@/components/Quiz";
+import { Sorter } from "@/components/Sorter";
+
+# Database
+
+ฐานข้อมูลเก็บข้อมูลจริงของระบบทั้งหมด ในที่นี้คือรายวิชา CLO นักศึกษา และคะแนน หน้านี้อธิบาย schema, migration และกฎที่ห้ามพลาด
+
+<Simple>
+
+<Term id="schema">Schema</Term> คือ **แบบแปลนบ้าน** บอกว่ามีห้องอะไร ขนาดเท่าไหร่ ส่วน <Term id="migration">migration</Term> คือ **ใบสั่งงานก่อสร้างทีละครั้ง** เช่น "ต่อเติมห้องครัว" เก็บไว้เรียงตามลำดับ ใครมาใหม่ก็รันใบสั่งงานทั้งหมดตามลำดับ แล้วได้บ้านหลังเดียวกันเป๊ะ
+
+และมีคำสั่งอันตรายหนึ่งคำสั่ง (`db push`) ที่ **ทุบแล้วสร้างใหม่ตามแบบแปลน** ซึ่งจะทำให้งานที่ช่างเขียนด้วยมือหายไปเงียบๆ ทีมจึงห้ามใช้ ทุกสภาพแวดล้อม
+
+</Simple>
+
+<Detail>
+
+ฐานข้อมูลคือ PostgreSQL 15+ บน Supabase เข้าถึงผ่าน **Prisma 6** `database/schema.prisma` เป็น source of truth ของโครงสร้างตาราง และ `database/migrations/` เก็บประวัติการเปลี่ยนแปลง มี 13 model ที่ migration `0001`–`0007` ซึ่ง `0002` ถึง `0007` เขียนด้วยมือ
+
+</Detail>
+
+## 13 model ของระบบ
+
+<Simple>
+
+ตารางในระบบแบ่งเป็น 5 กลุ่มตามเรื่องที่เก็บ
+
+</Simple>
+
+<div data-wide className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+  {modelGroups.map((g) => (
+    <div key={g.title} className="card card--flat">
+      <p className="card-meta">{g.title}</p>
+      <ul className="m-0 flex list-none flex-col gap-1 p-0">
+        {g.models.map((m) => (
+          <li key={m} className="mt-0 font-mono text-code text-ink">
+            {m}
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))}
+</div>
+
+<Detail>
+
+ลำดับชั้นหลักหลัง migration `0006`: **CLO → BehavioralObjective → Activity** โดย `AssessmentCriteria` ผูกกับ objective และทุกครั้งที่อัปโหลดคะแนนจาก Excel จะมีแถวใน `ScoreUploadLog` (`courseId`, `uploadedBy`, `fileName`, `recordsOk`, `recordsFail`) ไว้ตรวจย้อนหลังเมื่อมีข้อพิพาทเรื่องคะแนน ถ้า `schema.md` ขัดกับ `schema.prisma` ให้เชื่อ `schema.prisma`
+
+</Detail>
+
+## ประวัติ migration
+
+กดแต่ละอันเพื่อดูว่าเปลี่ยนอะไร แล้วลองกด "จำลอง: รัน prisma db push" ดูว่าอะไรจะหาย
+
+<MigrationTimeline />
+
+<Example title="สถานะของ CMAS (ตามเอกสาร 2026-09-26)">
+
+migration `0002`–`0007` เขียนมือทั้งหมด เอกสาร `migrations.md` เขียนว่ายังไม่มีบันทึกว่าเคย replay กับ shadow database แต่ตอนนี้ job `db` ใน CI replay migration ทั้งหมดจากฐานเปล่าและเทียบกับ `schema.prisma` ทุกรอบแล้ว (ดูหน้า [CI/CD](/ci)) ส่วนตารางที่ต้นแบบ `index-q.html` เสนอแต่ยังไม่อยู่ใน migration ใดเลย (เช่น `AuthEvent`, `UploadReject`) เป็นเนื้อหาที่เป็นไปได้ของ `0008`
+
+</Example>
+
+## กฎของ migration
+
+<Warning title="กฎที่ห้ามพลาด 4 ข้อ">
+
+1. เปลี่ยนโครงสร้างตารางด้วย `npm run db:migrate:dev -- --name ชื่อ_snake_case` เท่านั้น
+2. **ห้ามใช้ `prisma db push`** ทุกสภาพแวดล้อม รวมถึงในเครื่องตัวเอง
+3. **ห้ามแก้หรือเปลี่ยนชื่อโฟลเดอร์** ใน `database/migrations/` ที่ถูก apply ไปแล้ว เพราะ Prisma บันทึกชื่อไว้ในฐานข้อมูลแล้ว ต้องการเปลี่ยนอะไรให้สร้าง migration ใหม่
+4. migration ที่เขียนด้วยมือ (SQL ล้วน) ต้องเทียบกับ shadow database ด้วย `prisma migrate diff` ก่อน apply กับฐานที่ใช้ร่วมกัน
+
+</Warning>
+
+<Detail>
+
+| คำสั่ง | ใช้เมื่อ |
+| --- | --- |
+| `npm run db:migrate:dev -- --name <ชื่อ>` | สร้างและ apply migration ใหม่ **ในเครื่องเท่านั้น** |
+| `npm run db:migrate:deploy` | apply migration ที่มีอยู่แล้ว (production และ CI) |
+| `npm run db:generate` | สร้าง Prisma client ใหม่หลังแก้ schema |
+| `npm run db:validate` / `db:format` | ตรวจ / จัดรูปแบบ `schema.prisma` |
+| `npm run db:seed` | ใส่ข้อมูลตัวอย่าง (รันซ้ำได้ และปฏิเสธการรันถ้า `NODE_ENV=production`) |
+| `npm run db:studio` | เปิดหน้าดูข้อมูลที่พอร์ต 5555 |
+
+ถ้าแก้ `schema.prisma` โดยไม่สร้าง migration job `db` ใน CI จะล้มด้วย `prisma migrate diff --exit-code` เพราะฐานที่ migrate แล้วไม่ตรงกับ schema
+
+</Detail>
+
+## กฎการ query
+
+<Simple>
+
+เวลาไปหยิบข้อมูล ให้ขอเฉพาะที่จำเป็น และขอครั้งเดียวทีเดียวหลายอย่าง ไม่ใช่เดินไปหยิบทีละชิ้นซ้ำๆ
+
+</Simple>
+
+| ทำ | ห้ามทำ |
+| --- | --- |
+| `select` เฉพาะ field ที่ต้องการ (ไม่ส่ง `passwordHash` ออกไป) | ดึงทุก field แล้วส่งตรงให้ client |
+| ใช้ `include` ดึงข้อมูลที่เกี่ยวข้องในคำสั่งเดียว | วน loop แล้ว query ทีละรอบ (N+1) |
+| ครอบด้วย `prisma.$transaction` เมื่อหลายขั้นต้องสำเร็จพร้อมกัน | เขียนหลายตารางทีละคำสั่งโดยไม่มี transaction |
+| ใช้ `findUniqueOrThrow` แทนการเช็ก null เอง | `$queryRaw` ถ้า Prisma ทำได้อยู่แล้ว |
+| เรียกผ่าน repository เท่านั้น | เรียก `prisma.*` ใน service หรือ controller |
+
+<Detail>
+
+```typescript
+// ✅ select เฉพาะที่ต้องการ
+const course = await prisma.course.findFirst({
+  where: { id: courseId },
+  select: { id: true, name: true, clos: { select: { id: true, number: true } } },
+})
+
+// ✅ transaction สำหรับงานที่ต้อง atomic
+await prisma.$transaction(async (tx) => {
+  const course = await tx.course.create({ data: { /* ... */ } })
+  await tx.cLO.createMany({ data: clos.map((c) => ({ ...c, courseId: course.id })) })
+})
+
+// ❌ N+1: query ในลูป (ยิงฐานข้อมูลหนึ่งครั้งต่อรายวิชา)
+for (const course of courses) {
+  course.clos = await prisma.cLO.findMany({ where: { courseId: course.id } })
+}
+
+// ✅ include ครั้งเดียว
+const courses = await prisma.course.findMany({ include: { clos: true } })
+```
+
+ถ้าจำเป็นต้องใช้ raw SQL จริงๆ ใช้ parameterized (`Prisma.sql`) เท่านั้น ห้ามต่อสตริงด้วย template literal ตรงๆ
+
+</Detail>
+
+## ลองจัดสถานการณ์
+
+แต่ละสถานการณ์ควรใช้คำสั่งไหน
+
+<Sorter
+  prompt="ควรใช้อะไร"
+  choices={[
+    { id: "dev", label: "db:migrate:dev" },
+    { id: "deploy", label: "db:migrate:deploy" },
+    { id: "push", label: "db push" },
+    { id: "new", label: "สร้าง migration ใหม่ (ไม่แก้ของเดิม)" },
+  ]}
+  items={[
+    {
+      text: "แก้ schema.prisma เพิ่มคอลัมน์ใหม่ และต้องการให้ฐานข้อมูลในเครื่องมีคอลัมน์นั้น",
+      answer: "dev",
+      why: "db:migrate:dev สร้าง migration ใหม่และ apply ในเครื่อง ส่วน db push ห้ามใช้ทุกกรณี",
+    },
+    {
+      text: "ต้องนำ migration ที่ merge แล้วไป apply กับฐานข้อมูลที่ใช้งานจริง (production)",
+      answer: "deploy",
+      why: "migration มีอยู่แล้ว ไม่ต้องสร้างเพิ่ม แค่ apply ให้ตรงกัน migrate deploy ทำเฉพาะนั้น และไม่สร้างอะไรใหม่ ต่างจาก migrate dev ที่ใช้ในเครื่องเท่านั้น",
+    },
+    {
+      text: "migration 0005 เขียนผิดไปหนึ่งบรรทัด และ apply ไปแล้ว อยากแก้ไฟล์เดิมให้ถูก",
+      answer: "new",
+      why: "ห้ามแก้ migration ที่ apply แล้ว ให้สร้าง migration ใหม่ที่แก้ความผิดพลาดนั้น",
+    },
+    {
+      text: "ขี้เกียจสร้าง migration อยากให้ฐานข้อมูลตรงกับ schema ทันทีๆ",
+      answer: "dev",
+      why: "ไม่มีทางลัด db push คือสิ่งที่ห้ามใช้เพราะลบ SQL ที่เขียนมือ (CHECK, trigger) ทิ้งเงียบๆ ต้องสร้าง migration ผ่าน db:migrate:dev เสมอ",
+    },
+  ]}
+/>
+
+## ทดสอบความเข้าใจ
+
+<Quiz
+  questions={[
+    {
+      q: "ทำไมทีมห้ามใช้ prisma db push แม้ในเครื่องตัวเอง",
+      options: [
+        "มันช้า",
+        "มันลบ CHECK และ trigger ที่เขียนมือใน migration ทิ้งเงียบๆ เพราะสิ่งเหล่านั้นไม่อยู่ใน schema.prisma",
+        "มันสร้างไฟล์ migration เกินจำเป็น",
+        "มันใช้ได้เฉพาะ production",
+      ],
+      answer: 1,
+      why: "db push ปรับฐานข้อมูลให้ตรงกับ schema.prisma เท่านั้น ของที่เขียนมือจึงหายโดยไม่มีคำเตือน และ CI จะจับได้ตอน replay migration",
+    },
+    {
+      q: "ต้องการเปลี่ยนชื่อโฟลเดอร์ migration ให้สวยขึ้น ทำได้ไหม",
+      options: ["ได้ ถ้าแก้ให้ตรงกันทุกเครื่อง", "ไม่ได้ Prisma บันทึกชื่อไว้ในฐานข้อมูลแล้ว", "ได้ เฉพาะ migration ที่เขียนมือ", "ได้ ถ้ามี approval"],
+      answer: 1,
+      why: "ชื่อโฟลเดอร์ถูกบันทึกไว้ในฐานข้อมูลของทุกเครื่องและทุกสภาพแวดล้อมแล้ว การเปลี่ยนชื่อทำให้ Prisma สับสนว่า migration ไหน apply ไปแล้ว",
+    },
+    {
+      q: "แก้ schema.prisma แล้ว push ขึ้น PR โดยไม่ได้สร้าง migration จะเกิดอะไรขึ้น",
+      options: ["ไม่มีอะไร", "job db ใน CI ล้ม เพราะฐานที่ migrate แล้วไม่ตรงกับ schema", "ฐานข้อมูลจริงอัปเดตเอง", "Prisma สร้าง migration ให้เอง"],
+      answer: 1,
+      why: "CI replay migration ทั้งหมดแล้วรัน prisma migrate diff --exit-code ถ้าไม่ตรงจะล้มและแสดง SQL ที่ขาด",
+    },
+    {
+      q: "โค้ดนี้ผิดอย่างไร: for (const c of courses) { c.clos = await prisma.cLO.findMany(...) }",
+      options: ["ไม่ผิด", "เป็น N+1 query ควรใช้ include ดึงครั้งเดียว", "ควรใช้ $queryRaw", "ควรย้ายไปไว้ใน controller"],
+      answer: 1,
+      why: "query ในลูปทำให้ยิงฐานข้อมูลหนึ่งครั้งต่อรายวิชา ควรใช้ include หรือ findMany ครั้งเดียว",
+    },
+  ]}
+/>
+
+## ถัดไป
+
+- ตัว CI ที่ replay migration และตรวจ drift: หน้า [CI/CD](/ci)
+- เรื่อง secret ของฐานข้อมูลและสิทธิ์: หน้า [Security](/security)

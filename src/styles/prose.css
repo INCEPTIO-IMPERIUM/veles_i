@@ -1,0 +1,85 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   PROSE · typography for MDX pages
+   Wrap MDX output in <div className="prose"> (components/MdxPage.tsx).
+   Reading size is 15px (a size the prototype uses); h2 gets the hairline
+   rule the design-system page puts under its section headers.
+   ═══════════════════════════════════════════════════════════════════════ */
+@layer components {
+  .prose {
+    font-size: var(--text-body-lg);
+    line-height: 1.75;
+    color: var(--color-ink);
+  }
+  /* Text stays at a readable line length; interactive widgets opt out with data-wide. */
+  .prose > :where(:not([data-wide])) {
+    max-width: 72ch;
+  }
+  .prose > * + * {
+    margin-top: 16px;
+  }
+  .prose h1 {
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-edge);
+  }
+  .prose h2 {
+    margin-top: 44px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-edge);
+  }
+  .prose h3 {
+    margin-top: 32px;
+  }
+  .prose ul,
+  .prose ol {
+    padding-left: 24px;
+  }
+  .prose ul {
+    list-style: disc;
+  }
+  .prose ol {
+    list-style: decimal;
+  }
+  .prose li + li {
+    margin-top: 4px;
+  }
+  .prose a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prose :not(pre) > code {
+    padding: 1px 6px;
+    border-radius: var(--radius-xs);
+    background: var(--color-field);
+  }
+  .prose pre {
+    padding: 16px;
+    overflow-x: auto;
+    border: 1px solid var(--color-edge);
+    border-radius: var(--radius-sm);
+    background: var(--color-wash);
+    line-height: 1.6;
+  }
+  .prose blockquote {
+    padding-left: 16px;
+    border-left: 3px solid var(--color-haze);
+    color: var(--color-ink2);
+  }
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-body);
+  }
+  .prose th,
+  .prose td {
+    padding: var(--row-py) 12px;
+    border-bottom: 1px solid var(--color-edge);
+    text-align: left;
+    vertical-align: top;
+  }
+  .prose th {
+    background: var(--color-head);
+    font-size: var(--text-label);
+    font-weight: 600;
+    color: var(--color-ink2);
+  }
+}

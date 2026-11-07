@@ -1,0 +1,175 @@
+import { ReviewDrill } from "@/features/review/ReviewDrill";
+import { Checklist } from "@/components/Checklist";
+import { Quiz } from "@/components/Quiz";
+
+# PR & Code Review
+
+<Term id="pull-request">Pull Request</Term> คือคำขอให้รวมงานของคุณเข้ากองกลาง และ Code Review คือการที่เพื่อนอ่านงานก่อนรวม หน้านี้บอกว่าคนเปิด PR ต้องเตรียมอะไร และคนรีวิวต้องดูอะไร
+
+<Simple>
+
+การรีวิวไม่ใช่การจับผิด แต่คือ **สายตาคู่ที่สอง** คนเขียนมักมองไม่เห็นข้อผิดพลาดของตัวเอง ทีมมีกันสามคน จึงตกลงว่าทุกงานต้องมีเพื่อนอย่างน้อยหนึ่งคนอ่านและกดอนุมัติ ก่อนรวมเข้ากองกลาง ส่วนเรื่องที่หุ่นยนต์ตรวจแทนได้ (รูปแบบโค้ด ชนิดข้อมูล test) ปล่อยให้ CI ตรวจ คนรีวิวจะได้โฟกัสเรื่องที่ต้องใช้คนคิด
+
+</Simple>
+
+<Detail>
+
+กฎที่ระบบบังคับ: `main` และ `develop` ต้องผ่าน PR, ต้องมี approval 1 คน (เจ้าของ PR approve เองไม่ได้), ต้องผ่าน check `CI gate`, ห้าม force push และห้ามลบ branch ไฟล์ที่อยู่ใน `.github/CODEOWNERS` ต้องให้เจ้าของไฟล์อนุมัติ merge ใช้ merge commit เสมอ ไม่ใช่ squash หรือ rebase
+
+</Detail>
+
+## เส้นทางของ PR หนึ่งใบ
+
+<Steps>
+
+1. **ผู้เขียน** ตรวจงานตัวเองในเครื่อง (`npm run verify`) merge `develop` ล่าสุดเข้า branch ตัวเอง แล้วเปิด PR เข้า `develop`
+2. **ผู้เขียน** แจ้งในกลุ่มแชทว่าเปิด PR แล้ว
+3. **CI** รันอัตโนมัติ ต้องผ่านที่ `CI gate` (ดูหน้า [CI/CD](/ci))
+4. **ผู้รีวิว** (เพื่อนคนใดคนหนึ่งในสองคนที่เหลือ) อ่าน ถามหรือขอแก้ แล้วกด Approve
+5. merge ด้วย **merge commit** แล้ว **ผู้เขียนลบ branch** ที่ใช้เสร็จแล้ว
+
+</Steps>
+
+## เช็กลิสต์ของผู้เขียน (ก่อนกด Create PR)
+
+<Checklist
+  id="review-author"
+  groups={[
+    {
+      items: [
+        { id: "verify", text: "รัน npm run verify ผ่านในเครื่องแล้ว" },
+        { id: "merged-develop", text: "pull develop ล่าสุดมา merge เข้า branch ตัวเอง และไม่มี conflict ค้าง" },
+        { id: "runs", text: "โค้ดรันได้จริง ไม่มี error ที่เห็นชัด" },
+        { id: "commits", text: "commit message สื่อความหมาย ตามรูปแบบ type: คำอธิบาย" },
+        { id: "target", text: "PR ชี้ไป develop (ไม่ใช่ main ยกเว้น release/hotfix)" },
+        { id: "clean", text: "ไม่มีไฟล์ที่ไม่เกี่ยวข้อง หรือ .env และความลับติดมาใน PR" },
+        { id: "announce", text: "แจ้งในกลุ่มแชทแล้ว" },
+      ],
+    },
+  ]}
+/>
+
+## เช็กลิสต์ของผู้รีวิว (ก่อนกด Approve)
+
+<Checklist
+  id="review-reviewer"
+  groups={[
+    {
+      title: "ความถูกต้อง",
+      items: [
+        { id: "logic", text: "logic ถูกต้อง และทดสอบ edge case แล้ว" },
+        { id: "n1", text: "ไม่มี N+1 query" },
+        { id: "tx", text: "operation ที่ต้อง atomic ครอบด้วย transaction" },
+      ],
+    },
+    {
+      title: "คุณภาพโค้ด",
+      items: [
+        { id: "no-any", text: "ไม่มี any" },
+        { id: "no-hardcode", text: "ไม่มี string ที่ควรเป็นค่าคงที่หรือ env ถูกฝังไว้" },
+        { id: "srp", text: "function ทำสิ่งเดียว ชื่อสื่อความหมาย" },
+        { id: "one-file", text: "ไฟล์ export สิ่งเดียว ชื่อไฟล์ตรงกับสิ่งที่ export และไม่มี default export" },
+        { id: "layers", text: "ไม่มี business logic ใน controller หรือ repository และ service ไม่เรียก prisma ตรงๆ" },
+      ],
+    },
+    {
+      title: "ความปลอดภัย",
+      items: [
+        { id: "zod", text: "ตรวจ input ด้วย Zod ครบทุก endpoint" },
+        { id: "no-sensitive", text: "ไม่มีข้อมูลละเอียดอ่อนใน log หรือ response" },
+        { id: "authz", text: "ตรวจ authorization ครบ รวมถึงความเป็นเจ้าของ resource ไม่ใช่แค่ authentication" },
+        { id: "no-secret", text: "ไม่มี secret ฝังในโค้ด" },
+        { id: "excel", text: "อัปโหลด Excel ตรวจทั้งชนิดไฟล์ ขนาด และเนื้อหาแต่ละแถว" },
+      ],
+    },
+    {
+      title: "การทดสอบ",
+      items: [
+        { id: "happy", text: "มี test ครอบ happy path" },
+        { id: "edge", text: "มี test ครอบ error และ edge case" },
+      ],
+    },
+    {
+      title: "Git",
+      items: [
+        { id: "conv", text: "commit message ถูกตามรูปแบบ" },
+        { id: "scope", text: "ไม่มีไฟล์ที่ไม่เกี่ยวข้องติดมา" },
+        { id: "no-env", text: "ไม่มีไฟล์ .env หรือ secrets" },
+      ],
+    },
+  ]}
+/>
+
+## ไฟล์ที่ต้องให้เจ้าของดู
+
+<Simple>
+
+ไฟล์บางกลุ่มถ้าพลาดแล้วเสียหายหนักกว่าบั๊กทั่วไป เช่น ทำให้ความลับรั่วหรือข้อมูลของรายวิชาหนึ่งไปโผล่ให้อีกรายวิชา PR ที่แตะไฟล์เหล่านี้จึงต้องได้รับการอนุมัติจากเจ้าของไฟล์ ไม่ใช่เพื่อนคนใดก็ได้
+
+</Simple>
+
+<Example title="ไฟล์ใน CODEOWNERS ของ CMAS">
+
+| ที่อยู่ | เหตุผล |
+| --- | --- |
+| `.github/` | แก้ workflow อาจทำให้ความลับรั่ว หรือข้ามการตรวจทุกอย่างได้ |
+| `database/migrations/` และ `database/schema.prisma` | Prisma บันทึกชื่อ migration ไว้ในฐานข้อมูล และบางไฟล์เป็น SQL ที่เขียนมือ |
+| `app/server/src/modules/authorization/` และ `middlewares/` | ขอบเขตข้อมูลรายวิชา และด่านตรวจสิทธิ์ |
+| `app/server/src/modules/auth/` และ `lib/jwt.ts` | เส้นทางการล็อกอินและการออก token |
+| `Dockerfile.prod` (client และ server) และ `docker-compose.prod.yml` | สิ่งที่ขึ้นระบบจริง |
+
+</Example>
+
+<Warning title="แก้ช่องโหว่ด่วนก็ต้องมีคนรีวิว">
+
+โค้ดที่แก้ช่องโหว่ห้าม deploy โดยไม่ผ่านการรีวิวจากอีกหนึ่งคน แม้จะเร่งด่วน ให้ใช้ขั้นตอน hotfix ในหน้า [Git](/git) และแจ้งทีมทันทีว่ามีของด่านรอรีวิว
+
+</Warning>
+
+## ลองรีวิวจริง
+
+โค้ดด้านล่างคือ diff ของ PR หนึ่ง ลองอ่านแล้วติดธงบรรทัดที่คุณจะคอมเมนต์ เฉลยจะบอกกติกาข้อที่เกี่ยวข้อง
+
+<ReviewDrill />
+
+## ทดสอบความเข้าใจ
+
+<Quiz
+  questions={[
+    {
+      q: "ใครบ้างที่ approve PR ของคุณได้",
+      options: ["ตัวคุณเอง", "เพื่อนร่วมทีมคนอื่นอย่างน้อย 1 คน", "ใครก็ได้ที่เข้า GitHub", "CI gate"],
+      answer: 1,
+      why: "เจ้าของ PR approve เองไม่ได้ ต้องมีเพื่อนอย่างน้อยหนึ่งคน CI gate เป็นการตรวจอัตโนมัติ ไม่นับเป็นการรีวิว",
+    },
+    {
+      q: "PR แก้ไฟล์ใน middlewares/ ต้องได้รับการอนุมัติจากใคร",
+      options: ["เพื่อนคนไหนก็ได้", "เจ้าของไฟล์ตาม CODEOWNERS", "ไม่ต้องใครเลย", "เฉพาะ ADMIN ของระบบ"],
+      answer: 1,
+      why: "middlewares/ เป็นด่านตรวจสิทธิ์ ถ้าผิดกระทบความปลอดภัย จึงอยู่ใน CODEOWNERS",
+    },
+    {
+      q: "ผู้รีวิวควรใช้เวลากับอะไรมากที่สุด",
+      options: [
+        "ตรวจว่าเว้นวรรคและจัดรูปแบบถูกไหม",
+        "ตรวจ logic ความปลอดภัย และกฎชั้นของโค้ด ส่วนรูปแบบให้ CI ตรวจ",
+        "นับบรรทัดโค้ด",
+        "ตรวจชื่อผู้เขียน",
+      ],
+      answer: 1,
+      why: "รูปแบบและชนิดข้อมูลเป็นงานของหุ่นยนต์ (Prettier, ESLint, tsc) ส่วนคนควรตรวจเรื่องที่ต้องใช้วิจารณญาณ",
+    },
+    {
+      q: "หลัง merge เสร็จ ผู้เขียนต้องทำอะไรเป็นขั้นสุดท้าย",
+      options: ["ลบ branch ที่ใช้เสร็จแล้ว", "push ตรงเข้า main", "เปิด PR ใหม่ทันที", "ไม่ต้องทำอะไร"],
+      answer: 0,
+      why: "ลบ branch หลัง merge เพื่อไม่ให้ repo รก งานทั้งหมดอยู่ในประวัติของ develop แล้ว",
+    },
+  ]}
+/>
+
+## อ่านต่อ
+
+- ขั้นตอนเปิด PR และกติกา branch: หน้า [Git](/git)
+- สิ่งที่ CI ตรวจให้อัตโนมัติ: หน้า [CI/CD](/ci)
+- กฎโค้ดที่ผู้รีวิวใช้เทียบ: [โครงสร้างโค้ด & กฎ](/code) และ [Security](/security)

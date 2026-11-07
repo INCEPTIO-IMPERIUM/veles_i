@@ -1,0 +1,169 @@
+import { SetupPath } from "@/features/setup/SetupPath";
+import { EnvExplorer } from "@/features/setup/EnvExplorer";
+import { Checklist } from "@/components/Checklist";
+import { Quiz } from "@/components/Quiz";
+
+# ตั้งค่าวันแรก
+
+เป้าหมายของหน้านี้: ทำให้โปรเจกต์รันบนเครื่องคุณได้ภายในครึ่งชั่วโมง โดยรู้ด้วยว่าแต่ละขั้นทำอะไร
+
+<Simple>
+
+ก่อนเริ่มทำอาหารในครัวใหม่ ต้องเตรียมของสามอย่าง: **เครื่องครัว** (โปรแกรมที่ต้องติดตั้ง), **กุญแจตู้เก็บของ** (ค่าตั้งค่าและรหัสผ่านในไฟล์ `.env`) และ **วัตถุดิบเริ่มต้น** (ข้อมูลตัวอย่างในฐานข้อมูล) ส่วนใหญ่มีคำสั่งเดียวทำให้ เหลือแค่กุญแจที่คุณต้องไปขอจากหัวหน้าทีม
+
+</Simple>
+
+<Detail>
+
+โปรเจกต์เป็น monorepo จัดการด้วย **npm workspaces** (ไม่ใช่ pnpm) คำสั่ง `npm run setup` เป็น idempotent: ตรวจเวอร์ชัน Node, สร้าง `.env` ทั้ง 3 ไฟล์จากไฟล์ `.env.example` (ไม่ทับของเดิม), สร้าง `JWT_SECRET` ที่ถูกต้อง, `npm install` และ `prisma generate`
+
+</Detail>
+
+## ต้องมีอะไรในเครื่อง
+
+| อย่าง | เวอร์ชัน | หมายเหตุ |
+| --- | --- | --- |
+| Node.js | 24 LTS ขึ้นไป | ดูไฟล์ `.nvmrc` ที่ root ซึ่ง CI ก็อ่านไฟล์เดียวกัน |
+| npm | 10 ขึ้นไป | มากับ Node |
+| Git | 2.40 ขึ้นไป | ดูหน้า [Git](/git) |
+| ฐานข้อมูล | PostgreSQL 15 ขึ้นไป | ทีมใช้ Supabase ทั้ง dev และ production ไม่ต้องติดตั้งฐานข้อมูลในเครื่อง |
+| Docker | ไม่บังคับ | ใช้เฉพาะถ้าเลือกวิธี Docker |
+
+<Warning title="ตัวเลขเวอร์ชันใน dev.md เก่ากว่าโค้ด">
+
+เอกสาร `dev.md` ยังเขียนว่า Node 20 แต่ `package.json` กำหนด `engines.node >= 24` และ `.nvmrc` เป็น 24 ให้เชื่อโค้ด
+
+</Warning>
+
+## เลือกวิธีรัน
+
+<SetupPath />
+
+## ค่าตั้งค่า (.env) ทั้งหมด
+
+ไฟล์ `.env` เก็บค่าที่ต่างกันในแต่ละเครื่องและแต่ละสภาพแวดล้อม โดยเฉพาะ **ความลับ** ห้าม commit ขึ้น Git เด็ดขาด (มีใน `.gitignore` แล้ว) ลองกรองดูว่าตัวไหนเป็นความลับ
+
+<EnvExplorer />
+
+<Warning title="ห้ามส่งความลับผ่านแชทหรืออีเมล">
+
+ขอค่า `DATABASE_URL` และกุญแจอื่นจากหัวหน้าทีมผ่าน password manager หรือที่เก็บความลับของทีมเท่านั้น และห้ามใช้ความลับเดียวกันข้าม dev / staging / production รายละเอียดอยู่ในหน้า [Security](/security)
+
+</Warning>
+
+## เข้าระบบครั้งแรก
+
+<Example>
+
+ระบบเข้าสู่ระบบด้วย **Google เท่านั้น** อีเมลที่อยู่ใน `ADMIN_EMAILS` จะได้เป็น ADMIN ตอนล็อกอินครั้งแรก นี่คือวิธีสร้าง admin คนแรก อีเมลโดเมนใน `INSTITUTION_EMAIL_DOMAIN` ได้เป็น INSTRUCTOR อัตโนมัติ ส่วนคนอื่นจะรอ admin กดอนุมัติในหน้า Users
+
+</Example>
+
+## ถ้าติดปัญหา
+
+| อาการ | สาเหตุที่เป็นไปได้ | วิธีแก้ |
+| --- | --- | --- |
+| server ไม่ยอมเปิด แจ้งว่า env ผิด | `DATABASE_URL` หรือ `JWT_SECRET` หายไปหรือสั้นเกินไป server ตรวจตอนเริ่มและหยุดทันทีโดยตั้งใจ (fail-fast) | รัน `npm run setup` (สร้าง `JWT_SECRET` ให้) แล้วเช็กไฟล์ `app/server/.env` |
+| `npm run setup` แจ้งเวอร์ชัน Node ต่ำ | ต้อง Node 24+ ตาม `.nvmrc` | ติดตั้ง Node ใหม่ หรือใช้ `nvm use` |
+| ล็อกอินด้วย Google แล้วค้างที่หน้ารออนุมัติ | อีเมลไม่ได้อยู่ใน `ADMIN_EMAILS` และไม่ตรงกับ `INSTITUTION_EMAIL_DOMAIN` | ใส่อีเมลใน `ADMIN_EMAILS` แล้วล็อกอินใหม่ หรือให้ admin อนุมัติในหน้า Users |
+| `npm run db:seed` ไม่ยอมรัน | `NODE_ENV=production` ซึ่งตั้งใจกันไม่ให้ใส่ข้อมูลตัวอย่างลงฐานจริง | ตั้ง `NODE_ENV=development` |
+| ลบอีเมลออกจาก `ADMIN_EMAILS` แล้วยังเป็น ADMIN อยู่ | การลบไม่ลดสิทธิ์ย้อนหลัง | เปลี่ยน role ของบัญชีนั้นด้วยมือ |
+
+## คำสั่งที่ใช้บ่อย
+
+| คำสั่ง | ทำอะไร |
+| --- | --- |
+| `npm run dev` | เปิดหน้าเว็บ (5173) และ server (3001) พร้อมกัน |
+| `npm run verify` | format + lint + typecheck + test + build **รันก่อน push ทุกครั้ง** |
+| `npm run lint:fix` | ให้ ESLint แก้ให้เท่าที่แก้อัตโนมัติได้ |
+| `npm run format` | จัดรูปแบบโค้ดด้วย Prettier |
+| `npm run db:studio` | เปิดหน้าดูข้อมูลในฐานข้อมูลที่พอร์ต 5555 |
+| `npm run docker:up` / `docker:down` | เปิด / ปิด container |
+
+## เช็กลิสต์วันแรก
+
+ติ๊กไปทีละข้อ ระบบจำที่คุณติ๊กไว้ในเบราว์เซอร์นี้
+
+<Checklist
+  id="first-day"
+  groups={[
+    {
+      title: "เครื่องมือ",
+      items: [
+        { id: "node", text: "ติดตั้ง Node 24+ แล้ว (node --version)" },
+        { id: "git", text: "ติดตั้ง Git แล้ว และตั้งชื่อ/อีเมลของตัวเอง" },
+        { id: "clone", text: "clone โปรเจกต์ลงเครื่องแล้ว" },
+      ],
+    },
+    {
+      title: "ตั้งค่า",
+      items: [
+        { id: "setup", text: "รัน npm run setup สำเร็จ" },
+        { id: "secrets", text: "ได้ DATABASE_URL จากหัวหน้าทีมผ่านช่องทางที่ปลอดภัย (ไม่ใช่แชท)" },
+        { id: "google", text: "ตั้ง GOOGLE_CLIENT_ID และอีเมลตัวเองใน ADMIN_EMAILS" },
+        { id: "migrate", text: "รัน npm run db:migrate:dev และ npm run db:seed แล้ว" },
+      ],
+    },
+    {
+      title: "ลองรัน",
+      items: [
+        { id: "dev", text: "npm run dev แล้วเปิด http://localhost:5173 ได้" },
+        { id: "login", text: "ล็อกอินด้วย Google สำเร็จ" },
+        { id: "verify", text: "npm run verify ผ่านทั้งหมด" },
+      ],
+    },
+    {
+      title: "ก่อนเขียนโค้ด",
+      items: [
+        { id: "read-git", text: "อ่านหน้า Git และรู้ว่าต้องแตก branch จาก develop" },
+        { id: "read-code", text: "อ่านหน้าโครงสร้างโค้ด & กฎ" },
+      ],
+    },
+  ]}
+/>
+
+## ทดสอบความเข้าใจ
+
+<Quiz
+  questions={[
+    {
+      q: "ไฟล์ .env ควรทำอย่างไร",
+      options: [
+        "commit ขึ้น Git เพื่อให้ทุกคนใช้ค่าเดียวกัน",
+        "ไม่ commit และส่งค่าให้เพื่อนผ่านที่เก็บความลับของทีม",
+        "ส่งต่อทางแชทกลุ่มให้เร็วที่สุด",
+        "ฝังค่าไว้ในโค้ดแทน",
+      ],
+      answer: 1,
+      why: ".env มีความลับ ห้าม commit และห้ามส่งทางแชท ใช้ .env.example เป็นแม่แบบที่ไม่มีค่าจริง",
+    },
+    {
+      q: "ตัวแปรที่ขึ้นต้นด้วย VITE_ ควรใส่ค่าประเภทไหน",
+      options: ["รหัสผ่านฐานข้อมูล", "JWT_SECRET", "ค่าสาธารณะ เช่น ที่อยู่ API หรือ Google client id", "อะไรก็ได้"],
+      answer: 2,
+      why: "ทุกตัวที่ขึ้นต้นด้วย VITE_ ถูกส่งไปอยู่ในเบราว์เซอร์ของผู้ใช้ทุกคน จึงต้องเป็นค่าสาธารณะเท่านั้น",
+    },
+    {
+      q: "server ไม่ยอมเปิดและบอกว่า JWT_SECRET สั้นเกินไป ควรคิดอย่างไร",
+      options: [
+        "เป็นบั๊กของ server ต้องแก้โค้ด",
+        "ตั้งใจให้หยุดทันทีเมื่อค่าตั้งค่าไม่ปลอดภัย ให้แก้ค่าใน .env",
+        "ปิดการตรวจใน env.ts",
+        "ใช้ JWT_SECRET ว่างไปก่อน",
+      ],
+      answer: 1,
+      why: "ระบบตรวจค่าตั้งค่าตอนเริ่มและหยุดทันทีโดยตั้งใจ (fail-fast) JWT_SECRET ต้องยาว 32 ตัวอักษรขึ้นไป ใช้ npm run setup สร้างให้ได้",
+    },
+    {
+      q: "คำสั่งไหนควรรันก่อน push ทุกครั้ง",
+      options: ["npm run dev", "npm run db:seed", "npm run verify", "npm run clean"],
+      answer: 2,
+      why: "verify รัน format, lint, typecheck, test และ build ซึ่งเป็นชุดเดียวกับที่ CI ตรวจ เจอปัญหาในเครื่องเร็วกว่ารอ CI",
+    },
+  ]}
+/>
+
+## ถัดไป
+
+- ดูว่าแต่ละเครื่องมือในโปรเจกต์คืออะไร: [Tech Stack](/stack)
+- ก่อนเปิด PR แรก: [Git](/git) และ [CI/CD](/ci)

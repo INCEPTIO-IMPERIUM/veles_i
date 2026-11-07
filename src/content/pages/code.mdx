@@ -1,0 +1,244 @@
+import { FolderTree } from "@/features/code/FolderTree";
+import { LayerExplorer } from "@/features/code/LayerExplorer";
+import { LayerSorter } from "@/features/code/LayerSorter";
+import { Quiz } from "@/components/Quiz";
+
+# โครงสร้างโค้ด & กฎการเขียน
+
+โปรเจกต์ที่หลายคนช่วยกันเขียน จะอยู่รอดได้ก็ต่อเมื่อ **ทุกคนรู้ว่าอะไรอยู่ตรงไหน และตั้งชื่ออย่างไร** หน้านี้อธิบายกติกาสามเรื่อง: ไฟล์วางที่ไหนและตั้งชื่ออย่างไร, คำขอเดินทางผ่านโค้ดอย่างไร, และอะไรที่ห้ามทำเด็ดขาด
+
+<Simple>
+
+ลองนึกถึงครัวร้านอาหาร ถ้าทุกคนทำทุกอย่างปนกัน ทั้งรับออเดอร์ ทำอาหาร และไปหยิบของในคลัง ครัวจะวุ่นวายและหาของไม่เจอ โค้ดก็เหมือนกัน เราแบ่งหน้าที่ให้ชัด **1 ไฟล์ ทำ 1 เรื่อง** และแบ่งงานเป็นชั้นๆ ที่แต่ละชั้นรู้จักแค่ชั้นถัดไป ใครมาใหม่ก็เดาได้ว่าต้องไปหาของที่ไหน
+
+</Simple>
+
+<Detail>
+
+กฎหลักสี่ข้อจาก `code-rule.md`: (1) **OOP-first** logic ที่มี state หรือ dependency อยู่ใน class (2) **1 ไฟล์ : 1 หน้าที่** ชื่อไฟล์ตรงกับสิ่งที่ export (3) **Single Responsibility** method ยาวเกิน ~30 บรรทัดหรือมีเหตุผลให้แก้มากกว่าหนึ่งข้อ ให้แตก (4) **ห้าม default export** ใช้ named export (ยกเว้นไฟล์ page ที่ route lazy-load บังคับ)
+
+</Detail>
+
+## แผนที่โฟลเดอร์
+
+กดที่ชื่อโฟลเดอร์หรือไฟล์เพื่ออ่านว่ามันมีไว้ทำอะไร และมีกติกาตั้งชื่ออย่างไร เลือกแผนที่ได้สามแบบ
+
+<FolderTree />
+
+<Example>
+
+ฟีเจอร์เดียวกันมี **ชื่อเดียวกันทั้งสองฝั่ง**: `features/clos/` ฝั่ง client คู่กับ `modules/clos/` ฝั่ง server ค้นคำว่า `clos` ทีเดียวเจอทุกชั้น และไฟล์ย้ายไปที่ส่วนกลาง (`components/`, `hooks/`, `lib/`, `types/`) ก็ต่อเมื่อมี **ฟีเจอร์ที่สอง** ใช้มันเท่านั้น
+
+</Example>
+
+## ตั้งชื่อไฟล์
+
+<Simple>
+
+ชื่อไฟล์บอกบทบาทของมันเสมอ เห็นนามสกุลท้ายชื่อก็รู้ว่าเป็นอะไร เช่น `.route.ts` คือทางเข้า `.service.ts` คือกฎธุรกิจ ชื่อทุกอย่างในโค้ดใช้ภาษาอังกฤษ ส่วน comment และ commit message เขียนไทยได้
+
+</Simple>
+
+| ประเภท | รูปแบบ | ตัวอย่าง |
+| --- | --- | --- |
+| โฟลเดอร์ฟีเจอร์ | `kebab-case/` ชื่อเดียวกันสองฝั่ง | `features/clos/` ↔ `modules/clos/` |
+| React component | `PascalCase.tsx` | `CloListItem.tsx` |
+| React page | `PascalCase.page.tsx` | `CourseList.page.tsx` |
+| Hook | `useXxx.ts` | `useCloReorder.ts` |
+| ตัวเรียก API ฝั่ง client | `camelCase.api.ts` | `clos.api.ts` |
+| Route / Controller / Service / Validator | `kebab-case.<ชั้น>.ts` | `clos.route.ts`, `clos.service.ts` |
+| Repository | `kebab-case.repository.ts` ตามชื่อ model เอกพจน์ | `clo.repository.ts` |
+| Middleware | `kebab-case.middleware.ts` | `error-handler.middleware.ts` |
+| Type | `camelCase.types.ts` ใช้ `type` แทน `interface` | `course.types.ts` |
+| Test | ชื่อไฟล์ที่ทดสอบ + `.test.ts` | `cloScore.test.ts` |
+| ค่าคงที่ | `camelCase.constants.ts` | `app.constants.ts` |
+
+<Detail>
+
+ในโค้ด: ตัวแปรและฟังก์ชันใช้ `camelCase` และขึ้นต้นด้วยกริยา (`getCourseById`) ค่าคงที่ใช้ `SCREAMING_SNAKE_CASE` (`MAX_CLO_COUNT`) type ใช้ `PascalCase` โดย request body ลงท้าย `Input` และ response ลงท้าย `Response` ห้ามใช้คำนำหน้า `I` แบบ `IClo` model ของ Prisma เป็น `PascalCase` เอกพจน์ field เป็น `camelCase` และ endpoint ใช้ชื่อนามพหูพจน์แบบ kebab-case (`GET /courses/:courseId/clos`) ไม่มีกริยาใน URL
+
+</Detail>
+
+## คำขอเดินทางผ่าน 4 ชั้น
+
+ทุก endpoint ฝั่ง server เดินผ่าน 4 ชั้นนี้ตามลำดับเสมอ **ห้ามข้ามชั้น** ลองตามคำขอไปทีละชั้น
+
+<LayerExplorer />
+
+<Warning title="ข้อยกเว้นที่ทีมรู้อยู่">
+
+`authorization.service.ts` เขียนก่อนที่กฎ "Service ห้ามเรียก prisma ตรงๆ" จะตั้ง จึงยังเรียก Prisma เองอยู่ ไฟล์ใหม่ต้องไม่ทำตาม เมื่อเอกสารกับโค้ดขัดกัน ให้เชื่อโค้ด แล้วแก้เอกสารในการเปลี่ยนแปลงเดียวกัน
+
+</Warning>
+
+## ลองจัดโค้ดเข้าชั้น
+
+โค้ดหรือหน้าที่แต่ละข้อด้านล่างควรอยู่ชั้นไหน ลองตอบก่อนดูเฉลย
+
+<LayerSorter />
+
+## 1 ไฟล์ : 1 หน้าที่
+
+<Simple>
+
+ไฟล์หนึ่งไฟล์ควร "เป็นเจ้าของ" ของอย่างเดียว ชื่อไฟล์บอกได้เลยว่าข้างในคืออะไร ถ้าชื่อไฟล์คือ `utils.ts` แล้วใส่ฟังก์ชันไม่เกี่ยวกันสิบตัว ก็เหมือนลิ้นชักที่ใส่ทุกอย่างรวมกัน ไม่มีใครหาของเจอ
+
+</Simple>
+
+<Detail>
+
+```typescript
+// ❌ ผิด: สองฟังก์ชันไม่เกี่ยวข้องกันอยู่ไฟล์เดียว
+// utils.ts
+export function computeCloScore() { /* ... */ }
+export function formatDate() { /* ... */ }
+
+// ✅ ถูก: แยกไฟล์ตามหน้าที่ ชื่อไฟล์ = ชื่อฟังก์ชัน
+// computation/computeCloScore.ts
+export function computeCloScore(input: CloScoreInput): number | null { /* ... */ }
+// utils/formatDate.ts
+export function formatDate(date: Date): string { /* ... */ }
+```
+
+```typescript
+// ❌ ผิด: class เดียวทำสามเรื่อง
+export class CourseService {
+  computeScore() { /* ... */ }
+  exportExcel() { /* ... */ }
+  sendEmail() { /* ... */ }
+}
+
+// ✅ ถูก: แยก class แล้วประกอบกันผ่าน constructor
+export class CourseService {
+  constructor(
+    private readonly scoreService: ScoreService,
+    private readonly excelService: ExcelService,
+  ) {}
+}
+```
+
+ข้อยกเว้นที่อนุญาต: `index.ts` (รวม export อย่างเดียว ห้ามมี logic), `*.types.ts` (รวม type ของ entity เดียวกันได้), `*.test.ts` (หลายเคสของหน่วยเดียวกัน), `constants.ts` (ค่าคงที่ที่เกี่ยวข้องกัน)
+
+</Detail>
+
+## ฝั่ง React
+
+<Simple>
+
+หน้าจอทำหน้าที่แสดงผลอย่างเดียว ไม่ตัดสินใจเรื่องกฎของระบบ และไม่ไปดึงข้อมูลเอง มีตัวช่วยเฉพาะ (hook) ไปดึงให้ แล้วส่งผลมาแสดง
+
+</Simple>
+
+<Detail>
+
+- component ทั้งหมดเป็น **function component** ห้ามสร้าง class component
+- ดึงข้อมูลผ่าน hook ของ **TanStack Query** แล้วเรียก API ผ่าน `apiClient` ห้ามใช้ `useEffect` + `fetch` ในตัว component
+- business logic ไม่อยู่ใน component เรียกผ่าน hook → class หรือ service
+- class ใช้ได้กับ API client, store ที่ซับซ้อน และการคำนวณที่มี config/state เท่านั้น
+- Zustand ใช้เก็บ auth state เท่านั้น
+- ใช้ Tailwind และ token ของ design system ไม่เขียน inline style ที่ Tailwind ทำได้
+
+```typescript
+// api/CourseApiClient.ts : 1 class ต่อ 1 resource
+export class CourseApiClient {
+  constructor(private readonly http: ApiClient) {}
+
+  list() {
+    return this.http.get<CourseResponse[]>("/courses")
+  }
+}
+```
+
+</Detail>
+
+## สิ่งที่จะถูกปฏิเสธทันทีใน review
+
+| ห้ามทำ | เพราะ |
+| --- | --- |
+| ใช้ `any` | ทำให้ตัวตรวจชนิดข้อมูลหมดประโยชน์ ใช้ `unknown` แล้วตรวจก่อน |
+| ใส่ business logic ใน route หรือ controller | กฎของระบบต้องอยู่ที่ service ที่เดียว |
+| `useEffect` สำหรับดึงข้อมูล | ใช้ query hook เพื่อได้ cache, loading, error ฟรี |
+| fetch ในตัว component โดยตรง | ข้าม `apiClient` จึงไม่ใส่ token และไม่จัดการ error ให้ |
+| inline style ที่ Tailwind ทำได้ | แตกต่างจาก design system |
+| default export ของ component (ยกเว้นหน้า page ที่ lazy-load) | ชื่อ import ไม่ตรงกัน ค้นหาไม่เจอ |
+| commit `.env` หรือไฟล์ที่สร้างอัตโนมัติ (`dist/`, `node_modules/`) | ความลับรั่ว และ repo รก |
+| `git push --force origin main` | ลบงานของคนอื่นได้ |
+| `try { ... } catch {}` ที่กลืน error เงียบๆ | ปัญหาซ่อนอยู่จนพังตอนใช้งานจริง |
+
+## Checklist ก่อนส่งงาน review
+
+- ไฟล์นี้ export **สิ่งเดียว** (1 class หรือ 1 function)
+- ชื่อไฟล์ตรงกับชื่อ class หรือ function ที่ export
+- ไม่มี business logic หลุดเข้า Controller หรือ Repository
+- Service ไม่เรียก `prisma` ตรงๆ
+- class ใหม่รับ dependency ผ่าน constructor เท่านั้น (ไม่ใช้ตัวแปร global ที่ซ่อน dependency)
+- ไม่มี default export
+- ตรวจ input ทุกตัวด้วย Zod ฝั่ง server และไฟล์ Excel ที่อัปโหลดตรวจทีละแถว
+
+<Example title="กติกาของทีม CMAS: รายงานงาน">
+
+ทุก task ที่ทำเสร็จต้องรายงานเจ้าของโปรเจกต์ ไม่ใช่แค่เปิด PR: (1) ก่อนเริ่มแจ้งในกลุ่มว่าทำอะไร อยู่ branch ไหน (2) เสร็จแล้วส่งสรุป ได้แก่ task, ไฟล์ที่แก้, ลิงก์ PR, สถานะ (3) ติด blocker หรือต้องตัดสินใจเรื่อง scope ให้รายงานทันที (4) สรุปรายสัปดาห์ แม้ไม่มี PR ใหม่
+
+</Example>
+
+## ทดสอบความเข้าใจ
+
+<Quiz
+  questions={[
+    {
+      q: "Service ต้องการข้อมูลรายวิชาจากฐานข้อมูล ควรทำอย่างไร",
+      options: [
+        "เรียก prisma.course.findMany() ใน service ได้เลย",
+        "เรียกผ่าน repository",
+        "ให้ controller query มาให้แล้วส่งต่อ",
+        "เรียกจาก route",
+      ],
+      answer: 1,
+      why: "ห้ามเรียก prisma.* ตรงๆ ใน service หรือ controller ต้องผ่าน repository ซึ่งเป็นไฟล์เดียวที่แตะ Prisma",
+    },
+    {
+      q: "ไฟล์ที่ export ฟังก์ชัน computeCloScore ควรชื่ออะไร",
+      options: ["utils.ts", "helpers.ts", "computeCloScore.ts", "index.ts"],
+      answer: 2,
+      why: "1 ไฟล์ : 1 หน้าที่ ชื่อไฟล์ตรงกับชื่อสิ่งที่ export ส่วน utils.ts ที่รวมของไม่เกี่ยวกันคือสิ่งที่กฎนี้ห้าม",
+    },
+    {
+      q: "ไฟล์ clo.repository.ts ใช้ชื่อเอกพจน์ (clo) ขณะที่ clos.service.ts ใช้พหูพจน์ (clos) เพราะอะไร",
+      options: [
+        "พิมพ์ผิด ควรแก้ให้เหมือนกัน",
+        "repository ตั้งชื่อตาม model ของ Prisma ซึ่งเป็นเอกพจน์ ส่วนไฟล์อื่นใช้ชื่อฟีเจอร์",
+        "เพื่อให้ค้นหาเจอยากขึ้น",
+        "เป็นข้อบังคับของ Fastify",
+      ],
+      answer: 1,
+      why: "กติกา: repository ตามชื่อ model แบบเอกพจน์ (Clo) ส่วน route, controller, service, validator ใช้ชื่อฟีเจอร์",
+    },
+    {
+      q: "ต้องดึงรายชื่อ CLO มาแสดงบนหน้าจอ React ควรทำอย่างไร",
+      options: [
+        "useEffect แล้วเรียก fetch ในตัว component",
+        "ใช้ hook ของ TanStack Query ที่เรียกผ่าน apiClient",
+        "เรียก prisma จากฝั่ง client",
+        "เก็บใน Zustand ทุกอย่าง",
+      ],
+      answer: 1,
+      why: "ห้ามดึงข้อมูลด้วย useEffect หรือ fetch ตรงๆ ใช้ query hook เพื่อได้ cache และ error handling ที่เหมือนกันทุกหน้า Zustand ใช้กับ auth เท่านั้น",
+    },
+    {
+      q: "controller ตรวจ body ด้วย Zod แล้วเจอข้อมูลผิดรูปแบบ ควรทำอย่างไร",
+      options: [
+        "try/catch แล้วตอบ 400 เองใน controller",
+        "ปล่อย ZodError ให้ error-handler แปลงเป็นคำตอบ 400",
+        "ละเลยแล้วไปต่อ",
+        "ให้ repository ตรวจแทน",
+      ],
+      answer: 1,
+      why: "error-handler.middleware.ts แปลง ZodError และ Prisma error เป็นคำตอบรูปแบบเดียวกันอยู่แล้ว ไม่ต้องจับเอง",
+    },
+  ]}
+/>
+
+## อ่านต่อ
+
+- กติกาตั้งชื่อ branch และ commit: หน้า [Git](/git)
+- ตัวตรวจที่รันกฎเหล่านี้ให้อัตโนมัติ (lint, typecheck, test): หน้า [CI/CD](/ci)

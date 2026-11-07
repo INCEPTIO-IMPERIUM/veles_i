@@ -1,0 +1,300 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   COMPONENTS · class-based pieces used by veles
+   Built only from Nocturnal Atelier tokens. Kept in @layer components so
+   Tailwind utilities (bg-*, p-*, mt-*) can still override them.
+   ═══════════════════════════════════════════════════════════════════════ */
+@layer components {
+  /* ═══ BUTTON ═══ */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: var(--text-body-sm);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    text-decoration: none;
+    transition:
+      background var(--duration) var(--ease),
+      border-color var(--duration) var(--ease),
+      transform var(--duration) var(--ease);
+  }
+  .btn:hover {
+    text-decoration: none;
+  }
+  .btn:active {
+    transform: scale(0.98);
+  }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .btn--primary {
+    background: var(--color-ink);
+    color: var(--color-card);
+  }
+  .btn--primary:hover {
+    background: var(--color-haze);
+  }
+  .btn--outlined {
+    background: var(--color-card);
+    border-color: var(--color-edge);
+    color: var(--color-ink);
+  }
+  .btn--outlined:hover {
+    border-color: var(--color-dim);
+    background: var(--color-wash);
+  }
+  .btn--ghost {
+    background: transparent;
+    color: var(--color-ink2);
+  }
+  .btn--ghost:hover {
+    background: var(--color-field);
+    color: var(--color-ink);
+  }
+  .btn--sm {
+    padding: 7px 12px;
+    font-size: var(--text-label);
+  }
+  .btn--icon {
+    padding: 8px;
+  }
+
+  /* ═══ CARD ═══ */
+  .card {
+    position: relative;
+    background: var(--color-card);
+    border: 1px solid var(--color-edge);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-soft);
+    transition:
+      box-shadow var(--duration) var(--ease),
+      transform var(--duration) var(--ease),
+      border-color var(--duration) var(--ease);
+  }
+  a.card:hover,
+  button.card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card);
+    border-color: var(--color-dim);
+  }
+  .card--flat {
+    box-shadow: none;
+    transition: none;
+  }
+  .card--flat:hover {
+    transform: none;
+  }
+  /* small tracked caps, like the .sh headers of the design-system page */
+  .card-meta {
+    margin-bottom: 4px;
+    font-size: var(--text-overline);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-ink2);
+  }
+  .card-title {
+    margin-bottom: 4px;
+    font-size: var(--text-h4);
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  .card-body {
+    font-size: var(--text-body-sm);
+    line-height: 1.6;
+    color: var(--color-ink2);
+  }
+
+  /* ═══ BADGE / TAG ═══ */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: var(--text-caption);
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+  .badge--neutral {
+    background: var(--color-nil-bg);
+    color: var(--color-ink2);
+  }
+  .badge--info {
+    background: var(--color-info-bg);
+    color: var(--color-info);
+  }
+  .badge--warning {
+    background: var(--color-warn-bg);
+    color: var(--color-warn);
+  }
+  .badge--success {
+    background: var(--color-ok-bg);
+    color: var(--color-ok);
+  }
+  .badge--danger {
+    background: var(--color-bad-bg);
+    color: var(--color-bad);
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border: 1px solid var(--color-edge);
+    border-radius: 999px;
+    background: var(--color-card);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    color: var(--color-ink2);
+    cursor: pointer;
+    transition: border-color var(--duration) var(--ease);
+  }
+  .tag:hover {
+    border-color: var(--color-dim);
+    color: var(--color-ink);
+  }
+
+  /* ═══ ALERT · TONE.* bg with a bar on the left ═══ */
+  .alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-left: 3px solid;
+    border-radius: var(--radius-md);
+  }
+  .alert-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .alert-title {
+    margin-bottom: 3px;
+    font-size: var(--text-body-sm);
+    font-weight: 600;
+  }
+  /* Body text is ink2 (AAA) on every tone: tone colors are for the title and icon. */
+  .alert-body {
+    font-size: var(--text-body);
+    line-height: 1.6;
+    color: var(--color-ink2);
+  }
+  .alert--info {
+    background: var(--color-info-bg);
+    border-color: var(--color-info-bar);
+    color: var(--color-info);
+  }
+  .alert--warning {
+    background: var(--color-warn-bg);
+    border-color: var(--color-warn-bar);
+    color: var(--color-warn);
+  }
+  .alert--success {
+    background: var(--color-ok-bg);
+    border-color: var(--color-ok-bar);
+    color: var(--color-ok);
+  }
+  .alert--danger {
+    background: var(--color-bad-bg);
+    border-color: var(--color-bad-bar);
+    color: var(--color-bad);
+  }
+  /* neutral "example from the project" callout */
+  .alert--brand {
+    background: var(--color-sel-bg);
+    border-color: var(--color-haze);
+    color: var(--color-sel);
+  }
+
+  /* ═══ INPUT ═══ */
+  .input {
+    padding: 9px 12px;
+    border: 1px solid var(--color-edge);
+    border-radius: var(--radius-sm);
+    background: var(--color-card);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    color: var(--color-ink);
+    transition: border-color var(--duration) var(--ease);
+  }
+  .input::placeholder {
+    color: var(--color-faint);
+  }
+  .input:hover {
+    border-color: var(--color-dim);
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--color-focus);
+    box-shadow: var(--focus-ring);
+  }
+  .input--success {
+    border-color: var(--color-ok-bar);
+  }
+  .input-wrapper {
+    display: block;
+  }
+
+  /* ═══ PROGRESS ═══ */
+  .progress {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--text-label);
+  }
+  .progress-label {
+    color: var(--color-ink2);
+  }
+  .progress-value {
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  .progress-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--color-field);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--color-haze);
+    transition: width 450ms var(--ease);
+  }
+  .progress-fill--success {
+    background: var(--color-ok-bar);
+  }
+
+  /* ═══ KBD ═══ */
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border: 1px solid var(--color-edge);
+    border-bottom-width: 2px;
+    border-radius: var(--radius-xs);
+    background: var(--color-wash);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    color: var(--color-ink2);
+  }
+}

@@ -1,0 +1,55 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   NOCTURNAL ATELIER — DARK FIELD
+   index-q-design-system.html defines exactly six dark values:
+     --bg #13172B · --panel #1B2036 · --ink #E9EBF5 · --ink2 #C8CDEB
+     --dim #9AA0BE · --line #2E3558
+   They are used below for tint/card/ink/ink2/faint/edge. EVERYTHING ELSE in
+   this file is derived by veles (marked "derived") and should be replaced if
+   the CMAS prototype ever defines a dark field of its own.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* from the design system */
+  --color-tint: #13172b;
+  --color-card: #1b2036;
+  --color-ink: #e9ebf5;
+  --color-ink2: #c8cdeb;
+  --color-faint: #9aa0be;
+  --color-edge: #2e3558;
+
+  /* derived */
+  --color-wash: #171c32;
+  --color-field: #242b47;
+  --color-edge2: #262d4b;
+  --color-sel-bg: #2b3256;
+  --color-head: #171c32;
+  --color-ink-soft: #b3b9d6;
+  --color-dim: #8f95bd;
+  --color-sel: #c8cdeb;
+  --color-focus: #afaecc;
+  --color-haze: #afaecc;
+
+  --color-ok-bg: #1b2b29;
+  --color-ok: #8fbfa8;
+  --color-ok-bar: #6e9c87;
+  --color-ok-bd: #2f4a40;
+  --color-warn-bg: #2b2619;
+  --color-warn: #d9bc74;
+  --color-warn-bar: #c7a860;
+  --color-bad-bg: #2e1e25;
+  --color-bad: #e09a99;
+  --color-bad-bar: #b96f6e;
+  --color-bad-bd: #5a3438;
+  --color-info-bg: #1e2540;
+  --color-info: #a9b7e6;
+  --color-info-bar: #8c97be;
+  --color-nil-bg: #1f2540;
+  --color-nil: #9aa0be;
+  --color-nil-bar: #46507a;
+
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.25), 0 6px 20px -10px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 44px -14px rgba(0, 0, 0, 0.6);
+  --shadow-pop: 0 2px 6px rgba(0, 0, 0, 0.35), 0 24px 60px -18px rgba(0, 0, 0, 0.7);
+  --focus-ring: 0 0 0 3px rgba(175, 174, 204, 0.35);
+}

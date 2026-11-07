@@ -1,0 +1,16 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   veles · entry stylesheet
+   Design system: Nocturnal Atelier v3.2, the one in the CMAS prototype
+   (docs/pages/index-q-design-system.html). Order matters:
+     1. Tailwind v4 core
+     2. tokens  (@theme: colors, type, radius, shadows)
+     3. dark    (token overrides for <html data-theme="dark">)
+     4. base, components, prose
+   ═══════════════════════════════════════════════════════════════════════ */
+@import "tailwindcss";
+
+@import "./styles/tokens.css";
+@import "./styles/dark.css";
+@import "./styles/base.css";
+@import "./styles/components.css";
+@import "./styles/prose.css";
