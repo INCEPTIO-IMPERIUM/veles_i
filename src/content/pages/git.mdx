@@ -1,4 +1,5 @@
 import { GitFlow } from "@/features/git/GitFlow";
+import { GitCommands } from "@/features/git/GitCommands";
 import { BranchNameCheck } from "@/features/git/BranchNameCheck";
 import { CommitBuilder } from "@/features/git/CommitBuilder";
 import { ConflictDemo } from "@/features/git/ConflictDemo";
@@ -54,6 +55,39 @@ Git คือเครื่องมือที่จำประวัติ�
 PR ที่เปิดเข้า `main` ผิดกติกา (ที่มาไม่ใช่ `develop`, `release/*`, `hotfix/*`) จะถูกปฏิเสธโดย job `Git Flow branch rule` ใน `ci.yml` ถ้าเผลอเปิดผิด **ไม่ต้องปิด PR** กดปุ่ม Edit ข้างชื่อ PR แล้วเปลี่ยนปลายทางเป็น `develop` ได้เลย
 
 </Example>
+
+## คำสั่งพื้นฐาน
+
+<Simple>
+
+งานของคุณอยู่ได้ 4 ที่: **ไฟล์ที่กำลังแก้** → **ตะกร้ารอบันทึก** (staging) → **ประวัติในเครื่อง** → **GitHub** คำสั่ง Git ส่วนใหญ่คือการย้ายงานระหว่าง 4 ที่นี้ เลือกคำสั่งด้านล่าง แถบด้านบนจะบอกว่ามันย้ายงานจากไหนไปไหน จุดสีหน้าคำสั่งบอกระดับความเสี่ยง: เขียว ปลอดภัย · เหลือง ระวัง · แดง อาจทำให้งานหาย
+
+</Simple>
+
+<Detail>
+
+4 พื้นที่คือ working directory → staging area (index) → local repository → remote (`origin`) คำสั่งที่เขียนประวัติใหม่ (`rebase`, `commit --amend`, `reset`) ปลอดภัยเฉพาะกับ commit ที่ยังไม่ push ส่วนการย้อนสิ่งที่ push แล้วใช้ `revert`
+
+</Detail>
+
+<GitCommands />
+
+### คำสั่งที่มักสับสน
+
+| คู่นี้ | ต่างกันอย่างไร | ทีมใช้ |
+| --- | --- | --- |
+| `fetch` กับ `pull` | `fetch` แค่ดาวน์โหลดของใหม่มาดู ไม่แตะไฟล์ที่ทำอยู่ ส่วน `pull` = `fetch` + รวมเข้ามาทันที | `pull` ก่อนเริ่มงาน, `fetch` เมื่ออยากดูก่อนรวม |
+| `merge` กับ `rebase` | `merge` รวมโดยเพิ่ม commit รวม ประวัติเดิมอยู่ครบ ส่วน `rebase` ยก commit ของเราไปต่อท้ายใหม่ ประวัติเป็นเส้นตรงแต่ commit ถูกเขียนใหม่ | **merge** · ห้าม rebase branch ที่เปิด PR แล้ว |
+| `revert` กับ `reset` | `revert` สร้าง commit ใหม่ที่ย้อนผล ประวัติไม่หาย ส่วน `reset` ถอย branch กลับและลบ commit ออกจากประวัติ | `revert` กับของที่ push แล้ว, `reset` เฉพาะในเครื่อง |
+| `restore` กับ `restore --staged` | แบบแรกทิ้งการแก้ในไฟล์ (หายถาวร) แบบหลังแค่เอาออกจากตะกร้า ไฟล์ยังอยู่ | ดู `git status` ก่อนทุกครั้ง |
+| `switch` กับ `checkout` | ทำงานเหมือนกันสำหรับการสลับ / สร้าง branch `switch` เป็นคำสั่งใหม่ที่ชื่อชัดกว่า ส่วน `checkout` ทำได้หลายอย่างจนสับสน | ใช้อันไหนก็ได้ เอกสารทีมเขียนด้วย `checkout` |
+| `push` กับ `push --force` | `push` ส่งเพิ่มต่อท้าย `--force` เขียนทับประวัติบน GitHub | **ห้าม force push** บน main และ develop |
+
+<Warning title="จำไว้ข้อเดียว">
+
+**อะไรที่ push ไปแล้ว อย่าเขียนประวัติใหม่** (ไม่ `rebase`, ไม่ `amend`, ไม่ `reset`) ให้สร้าง commit ใหม่แก้แทน หรือใช้ `revert` เพราะเพื่อนอาจดึงประวัติเดิมไปทำงานต่อแล้ว
+
+</Warning>
 
 ## เดินตามสถานการณ์จริง
 

@@ -75,19 +75,21 @@
   --font-sans: "IBM Plex Sans Thai", "Inter", system-ui, sans-serif;
   --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
 
-  /* Sizes are the ones the prototype uses most (14px ×222, 13px ×128). */
-  --text-display: clamp(28px, 4vw, 30px);
-  --text-h1: 28px;
-  --text-h2: 22px;
-  --text-h3: 18px;
-  --text-h4: 16px;
-  --text-body-lg: 15px;
-  --text-body: 14px;
-  --text-body-sm: 13px;
-  --text-label: 12.5px;
-  --text-caption: 12px;
-  --text-overline: 11px;
-  --text-code: 13px;
+  /* veles deviates from the prototype here on purpose: the prototype's body is 14px
+     (×222 uses), veles is a reading site and uses 16px as its base. Every step of the
+     scale moved up by 2px so the hierarchy is the same, just larger. */
+  --text-display: clamp(30px, 4vw, 34px);
+  --text-h1: 30px;
+  --text-h2: 24px;
+  --text-h3: 20px;
+  --text-h4: 18px;
+  --text-body-lg: 18px;
+  --text-body: 16px;
+  --text-body-sm: 15px;
+  --text-label: 14px;
+  --text-caption: 13px;
+  --text-overline: 12px;
+  --text-code: 15px;
 
   /* ── RADIUS · xs 6 · sm 10 · (default) 14 · lg 18 · xl 24 · 2xl 28 ── */
   --radius-xs: 6px;

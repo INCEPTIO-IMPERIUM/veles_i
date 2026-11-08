@@ -32,6 +32,11 @@
   h1 {
     font-size: var(--text-h1);
   }
+  /* Jumping to a heading (search, "on this page") lands below the sticky header. */
+  h2,
+  h3 {
+    scroll-margin-top: 5rem;
+  }
   h2 {
     font-size: var(--text-h2);
   }

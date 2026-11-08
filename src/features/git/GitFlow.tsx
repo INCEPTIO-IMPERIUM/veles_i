@@ -4,9 +4,9 @@ import { CodeBlock } from "@/components/CodeBlock";
 import { useExplainMode } from "@/lib/explainMode";
 import { scenarios, type Commit, type LaneId, type Scenario } from "./gitFlow.data";
 
-const COL = 88;
-const ROW = 66;
-const LEFT = 140;
+const COL = 100;
+const ROW = 74;
+const LEFT = 184;
 const TOP = 8;
 const PAD_R = 28;
 
@@ -97,13 +97,13 @@ function Diagram({ scenario, step }: { scenario: Scenario; step: number }) {
             height={ROW}
             fill={i % 2 === 0 ? "var(--color-wash)" : "transparent"}
           />
-          <text x={14} y={TOP + i * ROW + ROW / 2 - 2} fontSize={12} fontWeight={600} fill="var(--color-ink)">
+          <text x={14} y={TOP + i * ROW + ROW / 2 - 2} fontSize={14} fontWeight={600} fill="var(--color-ink)">
             {lane.label}
           </text>
           <text
             x={14}
-            y={TOP + i * ROW + ROW / 2 + 13}
-            fontSize={10}
+            y={TOP + i * ROW + ROW / 2 + 16}
+            fontSize={12}
             fill="var(--color-ink2)"
           >
             {lane.hint}
@@ -144,7 +144,7 @@ function Diagram({ scenario, step }: { scenario: Scenario; step: number }) {
             <circle cx={x} cy={y} r={9} fill={color} stroke="var(--color-card)" strokeWidth={2} />
             {c.merge && <circle cx={x} cy={y} r={3.5} fill="var(--color-card)" />}
             {c.label && (
-              <text x={x} y={y + 26} textAnchor="middle" fontSize={10} fill="var(--color-ink2)">
+              <text x={x} y={y + 28} textAnchor="middle" fontSize={12} fill="var(--color-ink2)">
                 {c.label}
               </text>
             )}
@@ -157,24 +157,24 @@ function Diagram({ scenario, step }: { scenario: Scenario; step: number }) {
         const { x, y } = pos(c);
         const sameAnchor = badges.filter((o) => o.at === b.at);
         const row = sameAnchor.indexOf(b);
-        const w = b.text.length * 7.5 + 16;
-        const by = y - 36 - row * 20;
+        const w = b.text.length * 9 + 20;
+        const by = y - 38 - row * 24;
         return (
           <g key={`${b.at}-${b.text}`}>
             <rect
               x={x - w / 2}
-              y={by - 9}
+              y={by - 11}
               width={w}
-              height={18}
-              rx={9}
+              height={22}
+              rx={11}
               fill={b.tone === "tag" ? "var(--color-ink)" : "var(--color-sel-bg)"}
             />
             <text
               x={x}
-              y={by + 4}
+              y={by + 5}
               textAnchor="middle"
-              fontSize={10}
-              fontWeight={700}
+              fontSize={12}
+              fontWeight={600}
               fill={b.tone === "tag" ? "var(--color-card)" : "var(--color-sel)"}
             >
               {b.text}

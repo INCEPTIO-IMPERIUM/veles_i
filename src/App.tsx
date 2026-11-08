@@ -22,6 +22,7 @@ const pages: Record<string, ReactNode> = {
   glossary: <GlossaryPage />,
   setup: mdxPage("setup", () => import("@/content/pages/setup.mdx")),
   stack: mdxPage("stack", () => import("@/content/pages/stack.mdx")),
+  architecture: mdxPage("architecture", () => import("@/content/pages/architecture.mdx")),
   code: mdxPage("code", () => import("@/content/pages/code.mdx")),
   database: mdxPage("database", () => import("@/content/pages/database.mdx")),
   git: mdxPage("git", () => import("@/content/pages/git.mdx")),

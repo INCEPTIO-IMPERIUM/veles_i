@@ -1,10 +1,11 @@
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Menu, Moon, Search, Sun, X } from "lucide-react";
 import { project } from "@/project.config";
 import { useTheme } from "@/lib/theme";
 import { ExplainToggle } from "@/components/ExplainToggle";
 import { SearchDialog } from "@/components/SearchDialog";
+import { PageToc } from "./PageToc";
 import { Sidebar } from "./Sidebar";
 
 /** Shown while a page's chunk downloads. Kept the height of a short page so the footer doesn't jump. */
@@ -21,6 +22,7 @@ export function AppLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { pathname, hash } = useLocation();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Ctrl+K / ⌘K opens search from anywhere.
   useEffect(() => {
@@ -52,7 +54,8 @@ export function AppLayout() {
           >
             <Menu size={20} />
           </button>
-          <Link to="/" className="flex items-center gap-2 text-ink no-underline hover:no-underline">
+          {/* Same width as the sidebar so the brand sits above the menu. */}
+          <Link to="/" className="flex shrink-0 items-center gap-2 text-ink no-underline hover:no-underline lg:w-56">
             <img src="/favicon.svg" alt="" width={28} height={28} />
             <span className="text-h4 font-semibold tracking-tight">veles</span>
             <span className="hidden text-body-sm text-ink2 sm:inline">· {project.name}</span>
@@ -61,11 +64,11 @@ export function AppLayout() {
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="ml-auto flex h-9 min-w-0 items-center gap-2 rounded-md border border-edge bg-card px-3 text-body-sm text-ink2 transition-colors hover:border-dim sm:w-64"
+            className="ml-auto flex h-10 min-w-0 items-center gap-2 whitespace-nowrap rounded-md border border-edge bg-card px-3 text-body-sm text-ink2 transition-colors hover:border-dim sm:w-80"
           >
-            <Search size={16} aria-hidden />
-            <span className="hidden sm:inline">ค้นหาหัวข้อหรือคำศัพท์</span>
-            <span className="kbd ml-auto hidden sm:inline-flex">Ctrl K</span>
+            <Search size={16} className="shrink-0" aria-hidden />
+            <span className="hidden truncate sm:inline">ค้นหาหัวข้อหรือคำศัพท์</span>
+            <span className="kbd ml-auto hidden shrink-0 whitespace-nowrap sm:inline-flex">Ctrl K</span>
             <span className="sr-only sm:hidden">ค้นหา</span>
           </button>
 
@@ -85,23 +88,37 @@ export function AppLayout() {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-[1400px]">
-        <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 overflow-y-auto lg:block">
+      {/* Sidebar pinned to the left edge; the content takes everything else. On very wide
+          screens an "on this page" column fills the right instead of empty margins. */}
+      <div className="flex">
+        <aside
+          className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 overflow-y-auto border-r border-edge bg-card lg:block"
+        >
           <Sidebar />
         </aside>
 
-        <main className="min-w-0 flex-1 p-3 sm:p-6">
+        <main className="min-w-0 flex-1 px-3 py-3 sm:px-6 sm:py-6">
           <div className="mb-3 md:hidden">
             <ExplainToggle />
           </div>
-          <div className="page-card min-h-[calc(100vh-6rem)] px-5 py-8 sm:px-10 sm:py-10">
-            <Suspense fallback={<PageLoading />}>
-              <Outlet />
-            </Suspense>
+          <div className="flex gap-6">
+            <div className="min-w-0 flex-1">
+              <div
+                ref={contentRef}
+                className="page-card min-h-[calc(100vh-6rem)] px-5 py-8 sm:px-10 sm:py-10 xl:px-14"
+              >
+                <Suspense fallback={<PageLoading />}>
+                  <Outlet />
+                </Suspense>
+              </div>
+              <footer className="px-2 py-6 text-center text-caption text-ink2">
+                veles · เนื้อหาอิงจาก docs ของ {project.name} · design system Nocturnal Atelier
+              </footer>
+            </div>
+            <aside className="sticky top-20 hidden h-[calc(100vh-6rem)] w-56 shrink-0 overflow-y-auto 2xl:block">
+              <PageToc rootRef={contentRef} path={pathname} />
+            </aside>
           </div>
-          <footer className="px-2 py-6 text-center text-caption text-ink2">
-            veles · เนื้อหาอิงจาก docs ของ {project.name} · design system Nocturnal Atelier
-          </footer>
         </main>
       </div>
 

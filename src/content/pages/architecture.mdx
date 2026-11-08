@@ -1,0 +1,125 @@
+import { OverviewMap } from "@/features/architecture/OverviewMap";
+import { DetailMap } from "@/features/architecture/DetailMap";
+import { LoginFlow } from "@/features/architecture/LoginFlow";
+import { RequestWalk } from "@/features/architecture/RequestWalk";
+import { Quiz } from "@/components/Quiz";
+
+# สถาปัตยกรรมระบบ
+
+หน้านี้พาดูภาพรวมว่าระบบประกอบจากอะไร ใครคุยกับใคร ผ่านช่องทางอะไร (protocol) และแต่ละส่วนใช้เครื่องมืออะไร ตัวแผนภาพมาจากไฟล์ `docs/diagrams/architecture/CMAS-Architecture-Overview.drawio` ซึ่งมี 4 หน้า ผมแปลงเป็น 4 ส่วนที่กดดูได้ด้านล่าง
+
+<Simple>
+
+ลองนึกถึงการสั่งอาหารผ่านแอป: **หน้าจอแอป** คือหน้าร้าน **server** คือห้องครัวที่ตรวจว่าคุณเป็นใครและมีสิทธิ์สั่งไหม **ฐานข้อมูล** คือคลังวัตถุดิบ และ **Google** คือคนตรวจบัตรประชาชนให้ ระหว่างแต่ละจุดมี "ช่องทางขนส่ง" (protocol) ที่ต่างกัน เช่น จดหมายปิดผนึก (HTTPS) หรือท่อลับ (TCP + TLS) หน้านี้บอกว่าแต่ละช่องทางคืออะไร
+
+</Simple>
+
+<Detail>
+
+ระบบเป็น single-tenant: **React → Fastify → PostgreSQL** โดยมีขอบเขตข้อมูลเดียวคือรายวิชา ฝั่ง client กับ server คุยกันผ่าน REST/JSON บน HTTPS แนบ JWT ส่วน server กับฐานข้อมูลคุยผ่าน Prisma (SQL บน TCP + TLS) และการเข้าสู่ระบบใช้ Google (OpenID Connect) เท่านั้น
+
+</Detail>
+
+<Warning title="แผนภาพนี้นำหน้าโค้ดอยู่บางส่วน">
+
+ผมเทียบแผนภาพกับโค้ดบน branch `develop` (2026-11-08) และติดป้าย "ตามแผน" ไว้กับสิ่งที่วาดไว้แต่ยังไม่พบในโค้ด ได้แก่ SSE (อัปเดตสด), cookie ของ refresh token, apiClient ที่ refresh token เอง, ตาราง `RefreshToken`, migration 0008–0009 (RLS) และ modules `courses` `clos` `activities` `scores` `students` `dashboard` ส่วนข้อมูลด้าน infrastructure (Session pooler, พอร์ต) ยกมาจากแผนภาพ ผมตรวจจากโค้ดไม่ได้
+
+</Warning>
+
+## 1. ภาพรวม
+
+กดที่กล่องหรือที่เส้น เพื่อดูว่าเป็นอะไร และเส้นนั้นใช้ protocol อะไร
+
+<OverviewMap />
+
+## 2. รายละเอียดทุกชั้น
+
+เลือกเส้นทางข้อมูลด้านบน กรอบที่เส้นนั้นเชื่อมจะถูกไฮไลต์ ป้าย "ตามแผน" คือสิ่งที่อยู่ในแผนภาพแต่ยังไม่มีในโค้ด
+
+<DetailMap />
+
+## 3. ล็อกอินด้วย Google
+
+<Simple>
+
+ผู้ใช้ไม่ต้องตั้งรหัสผ่านกับระบบเรา แต่ให้ Google ยืนยันตัวตนแทน เหมือนไปงานที่ต้องโชว์บัตร: Google ตรวจบัตรแล้วออก "ใบรับรอง" ให้ เรานำใบรับรองนั้นไปให้ server ตรวจอีกที ถ้าผ่านก็ได้บัตรผ่านของระบบเราไปใช้งาน
+
+</Simple>
+
+เลือกสถานการณ์ แล้วกด "ถัดไป" ทีละขั้น ดูว่า protocol ไหนทำหน้าที่ตรงไหน
+
+<LoginFlow />
+
+<Example title="อีเมลของคนนอกโดเมนสถาบัน">
+
+อีเมลใน `ADMIN_EMAILS` ได้เป็น ADMIN ตอนล็อกอินครั้งแรก อีเมลที่ลงท้ายด้วย `INSTITUTION_EMAIL_DOMAIN` ได้เป็น INSTRUCTOR ทันที ส่วนอีเมลอื่นจะได้บัญชีสถานะรออนุมัติ (PENDING) จนกว่า ADMIN จะกดอนุมัติ นี่คือสถานการณ์ "บัญชียังไม่ได้รับอนุมัติ" ด้านบน
+
+</Example>
+
+## 4. คำขอหนึ่งครั้งเดินทางอย่างไร
+
+ตามคำขอ "ADMIN อนุมัติผู้ใช้" ตั้งแต่กดปุ่มจนข้อมูลเปลี่ยนในฐานข้อมูล และเห็นว่าแต่ละขั้นใช้เครื่องมืออะไร
+
+<RequestWalk />
+
+<Detail>
+
+แผนภาพต้นฉบับยังเรียกขั้นตรวจสิทธิ์ว่า `rbac('ADMIN')` แต่โค้ดตอนนี้ใช้ `access.middleware` ที่อ่าน `config: { access: { cap: "user.manage" } }` ของ route แล้วเทียบ role กับ capability หน้านี้เดินตามโค้ด และเลข ①–⑩ ในแผนภาพต้นฉบับไม่ตรงกับเลขขั้นด้านบน
+
+</Detail>
+
+## ช่องทาง (protocol) ที่ใช้ในระบบ
+
+| ช่องทาง | อยู่ระหว่าง | เปรียบเทียบง่ายๆ | สถานะ |
+| --- | --- | --- | --- |
+| **HTTPS** | ผู้ใช้ ↔ หน้าเว็บ, หน้าเว็บ ↔ server, server ↔ Google | จดหมายใส่ซองปิดผนึก | ใช้อยู่ |
+| **REST API (JSON)** | หน้าเว็บ ↔ server | แบบฟอร์มสั่งของที่ทุกคนใช้รูปแบบเดียวกัน | ใช้อยู่ |
+| **JWT (Bearer token)** | แนบกับทุกคำขอ | บัตรผ่านที่มีวันหมดอายุ | ใช้อยู่ (access token 15 นาที) |
+| **OpenID Connect** | Google ↔ เบราว์เซอร์ ↔ server | บัตรประชาชนที่ Google ตรวจให้ | ใช้อยู่ |
+| **TCP + TLS** | server ↔ ฐานข้อมูล | ท่อลับที่เข้ารหัส | ใช้อยู่ |
+| **SQL (ผ่าน Prisma)** | server ↔ ฐานข้อมูล | ภาษาที่ใช้สั่งคลัง | ใช้อยู่ |
+| **HTTP cookie** | server ↔ เบราว์เซอร์ | ลิ้นชักล็อกในเบราว์เซอร์ที่เก็บบัตรสำรอง | ตามแผน |
+| **Server-Sent Events** | server → หน้าเว็บ | คนมาเคาะประตูบอกข่าว | ตามแผน |
+
+## ทดสอบความเข้าใจ
+
+<Quiz
+  questions={[
+    {
+      q: "หน้าเว็บส่งคำขอไปที่ server ด้วยช่องทางอะไร",
+      options: ["TCP + TLS แล้วใช้ SQL", "HTTPS แบบ REST/JSON แนบ JWT", "Server-Sent Events", "OpenID Connect"],
+      answer: 1,
+      why: "client ↔ server ใช้ REST/JSON บน HTTPS และแนบ JWT ใน header ส่วน TCP + TLS กับ SQL คือเส้นระหว่าง server กับฐานข้อมูล",
+    },
+    {
+      q: "Google ทำหน้าที่อะไรในระบบนี้",
+      options: ["เก็บข้อมูลคะแนน", "ยืนยันตัวตนผู้ใช้ แล้วออก ID token ให้ server ตรวจ", "เป็น server ของระบบ", "ส่งอีเมลแจ้งเตือน"],
+      answer: 1,
+      why: "ระบบเข้าสู่ระบบด้วย Google (OpenID Connect) เท่านั้น server ตรวจ ID token ที่ aud, iss และ exp ด้วยกุญแจสาธารณะ (JWKS) ของ Google",
+    },
+    {
+      q: "ตัวไหนเป็นไฟล์เดียวที่ได้เรียก prisma.user ในเส้นทางอนุมัติผู้ใช้",
+      options: ["Controller", "Service", "Repository", "Route"],
+      answer: 2,
+      why: "ทุกการคุยกับ Prisma ต้องผ่าน repository เท่านั้น ดูหน้าโครงสร้างโค้ดเรื่องกฎของแต่ละชั้น",
+    },
+    {
+      q: "ผู้ใช้ส่ง ID token ปลอมมาที่ POST /auth/google ผลเป็นอย่างไร",
+      options: ["ได้ JWT ตามปกติ", "server ตรวจไม่ผ่าน ตอบ 401 และไม่ออก JWT", "ถูกสร้างเป็น ADMIN", "ข้ามไปขั้นตรวจสิทธิ์"],
+      answer: 1,
+      why: "ขั้นตรวจ ID token ล้มเหลว server ปฏิเสธตั้งแต่ตรงนั้น ไม่มีการหาหรือสร้างบัญชี และไม่ออกบัตรผ่าน",
+    },
+    {
+      q: "ข้อไหนในแผนภาพที่ยังไม่พบในโค้ดบน develop",
+      options: ["Fastify และ Prisma", "ตารางผู้ใช้และการอนุมัติ", "Server-Sent Events และ cookie ของ refresh token", "การตรวจ JWT"],
+      answer: 2,
+      why: "SSE และ cookie ของ refresh token วาดไว้ในแผนภาพ แต่ยังไม่มีในโค้ด จึงติดป้าย \"ตามแผน\" ไว้",
+    },
+  ]}
+/>
+
+## ถัดไป
+
+- ดูแต่ละเครื่องมือโดยละเอียด: [Tech Stack](/stack)
+- ดูแต่ละชั้นของ server ว่ามีหน้าที่อะไร: [โครงสร้างโค้ด & กฎ](/code)
+- เรื่องสิทธิ์และ 404/403: [Security](/security)

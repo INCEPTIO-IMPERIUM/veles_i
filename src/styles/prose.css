@@ -1,18 +1,19 @@
 /* ═══════════════════════════════════════════════════════════════════════
    PROSE · typography for MDX pages
    Wrap MDX output in <div className="prose"> (components/MdxPage.tsx).
-   Reading size is 15px (a size the prototype uses); h2 gets the hairline
+   Reading size is the 16px base; h2 gets the hairline
    rule the design-system page puts under its section headers.
    ═══════════════════════════════════════════════════════════════════════ */
 @layer components {
   .prose {
-    font-size: var(--text-body-lg);
+    font-size: var(--text-body);
     line-height: 1.75;
     color: var(--color-ink);
   }
-  /* Text stays at a readable line length; interactive widgets opt out with data-wide. */
-  .prose > :where(:not([data-wide])) {
-    max-width: 72ch;
+  /* Running text stays at a readable line length. Tables, code, callouts and
+     interactive widgets use the full width of the page. */
+  .prose > :where(p, ul, ol, blockquote, h1, h2, h3, h4) {
+    max-width: 80ch;
   }
   .prose > * + * {
     margin-top: 16px;
