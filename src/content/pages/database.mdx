@@ -1,6 +1,5 @@
 import { MigrationTimeline } from "@/features/database/MigrationTimeline";
 import { modelGroups } from "@/features/database/migrations.data";
-import { Quiz } from "@/components/Quiz";
 import { Sorter } from "@/components/Sorter";
 
 # Database
@@ -164,42 +163,6 @@ const courses = await prisma.course.findMany({ include: { clos: true } })
       text: "ขี้เกียจสร้าง migration อยากให้ฐานข้อมูลตรงกับ schema ทันทีๆ",
       answer: "dev",
       why: "ไม่มีทางลัด db push คือสิ่งที่ห้ามใช้เพราะลบ SQL ที่เขียนมือ (CHECK, trigger) ทิ้งเงียบๆ ต้องสร้าง migration ผ่าน db:migrate:dev เสมอ",
-    },
-  ]}
-/>
-
-## ทดสอบความเข้าใจ
-
-<Quiz
-  questions={[
-    {
-      q: "ทำไมทีมห้ามใช้ prisma db push แม้ในเครื่องตัวเอง",
-      options: [
-        "มันช้า",
-        "มันลบ CHECK และ trigger ที่เขียนมือใน migration ทิ้งเงียบๆ เพราะสิ่งเหล่านั้นไม่อยู่ใน schema.prisma",
-        "มันสร้างไฟล์ migration เกินจำเป็น",
-        "มันใช้ได้เฉพาะ production",
-      ],
-      answer: 1,
-      why: "db push ปรับฐานข้อมูลให้ตรงกับ schema.prisma เท่านั้น ของที่เขียนมือจึงหายโดยไม่มีคำเตือน และ CI จะจับได้ตอน replay migration",
-    },
-    {
-      q: "ต้องการเปลี่ยนชื่อโฟลเดอร์ migration ให้สวยขึ้น ทำได้ไหม",
-      options: ["ได้ ถ้าแก้ให้ตรงกันทุกเครื่อง", "ไม่ได้ Prisma บันทึกชื่อไว้ในฐานข้อมูลแล้ว", "ได้ เฉพาะ migration ที่เขียนมือ", "ได้ ถ้ามี approval"],
-      answer: 1,
-      why: "ชื่อโฟลเดอร์ถูกบันทึกไว้ในฐานข้อมูลของทุกเครื่องและทุกสภาพแวดล้อมแล้ว การเปลี่ยนชื่อทำให้ Prisma สับสนว่า migration ไหน apply ไปแล้ว",
-    },
-    {
-      q: "แก้ schema.prisma แล้ว push ขึ้น PR โดยไม่ได้สร้าง migration จะเกิดอะไรขึ้น",
-      options: ["ไม่มีอะไร", "job db ใน CI ล้ม เพราะฐานที่ migrate แล้วไม่ตรงกับ schema", "ฐานข้อมูลจริงอัปเดตเอง", "Prisma สร้าง migration ให้เอง"],
-      answer: 1,
-      why: "CI replay migration ทั้งหมดแล้วรัน prisma migrate diff --exit-code ถ้าไม่ตรงจะล้มและแสดง SQL ที่ขาด",
-    },
-    {
-      q: "โค้ดนี้ผิดอย่างไร: for (const c of courses) { c.clos = await prisma.cLO.findMany(...) }",
-      options: ["ไม่ผิด", "เป็น N+1 query ควรใช้ include ดึงครั้งเดียว", "ควรใช้ $queryRaw", "ควรย้ายไปไว้ใน controller"],
-      answer: 1,
-      why: "query ในลูปทำให้ยิงฐานข้อมูลหนึ่งครั้งต่อรายวิชา ควรใช้ include หรือ findMany ครั้งเดียว",
     },
   ]}
 />

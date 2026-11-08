@@ -3,7 +3,6 @@ import { GitCommands } from "@/features/git/GitCommands";
 import { BranchNameCheck } from "@/features/git/BranchNameCheck";
 import { CommitBuilder } from "@/features/git/CommitBuilder";
 import { ConflictDemo } from "@/features/git/ConflictDemo";
-import { Quiz } from "@/components/Quiz";
 
 # Git
 
@@ -209,54 +208,6 @@ git config --global core.editor "notepad.exe"
 ```
 
 </Detail>
-
-## ทดสอบความเข้าใจ
-
-<Quiz
-  questions={[
-    {
-      q: "จะเริ่มทำฟีเจอร์ใหม่ ต้องแตก branch จากที่ไหน",
-      options: ["main", "develop", "branch ของเพื่อนที่ทำงานคล้ายกัน", "ที่ไหนก็ได้"],
-      answer: 1,
-      why: "ทุก branch งานแตกจาก develop และ merge กลับ develop มีแค่ hotfix ที่แตกจาก main",
-    },
-    {
-      q: "เปิด PR ของ feature ให้ชี้ไปที่ branch ไหน",
-      options: ["main", "release", "develop", "branch ไหนก็ได้ที่ว่าง"],
-      answer: 2,
-      why: "PR ของงานปกติเข้า develop เสมอ ถ้าเปิดเข้า main ผิด ให้กด Edit เปลี่ยนปลายทางได้ ไม่ต้องปิด PR",
-    },
-    {
-      q: "แก้ hotfix แล้ว merge เข้า main เรียบร้อย ขั้นที่ห้ามลืมคือข้อไหน",
-      options: ["ลบ branch main", "ส่งการแก้กลับเข้า develop ผ่าน PR", "ไม่ต้องทำอะไรอีก", "รอรอบ release ถัดไป"],
-      answer: 1,
-      why: "ถ้าไม่ back-merge develop จะไม่มีการแก้นี้ และบั๊กตัวเดิมจะกลับมาในรอบถัดไป",
-    },
-    {
-      q: "PR ของทีมนี้ merge ด้วยวิธีไหน",
-      options: ["squash", "rebase", "merge commit", "แล้วแต่ใจคนกด"],
-      answer: 2,
-      why: "ใช้ merge commit เสมอ เพื่อไม่ให้ประวัติหายและไม่ให้ main กับ develop แตกประวัติจากกัน",
-    },
-    {
-      q: "เจอ conflict ในไฟล์ที่เพื่อนเขียนไว้ ควรทำอย่างไร",
-      options: [
-        "เลือกฝั่งของเราไปก่อน แล้วค่อยบอกทีหลัง",
-        "ลบโค้ดของเพื่อนทิ้งให้หมด",
-        "คุยกับเจ้าของโค้ดก่อนตัดสินใจ",
-        "ปิด PR แล้วเริ่มใหม่",
-      ],
-      answer: 2,
-      why: "กติกาทีม: ห้ามตัดสินใจคนเดียวเงียบๆ ถ้าชนกับโค้ดเพื่อนโดยตรง ต้องคุยกับเจ้าของก่อน",
-    },
-    {
-      q: "commit message ข้อไหนตรงกติกาทีม",
-      options: ["update", "แก้", "feat: เพิ่มระบบล็อกอินด้วยอีเมล", "Fixed stuff."],
-      answer: 2,
-      why: "รูปแบบคือ ประเภท: คำอธิบายสั้นๆ ที่บอกว่าทำอะไร ไม่คลุมเครือ และไม่ลงท้ายด้วยจุด",
-    },
-  ]}
-/>
 
 ## อ่านต่อ / ฝึกเพิ่ม
 

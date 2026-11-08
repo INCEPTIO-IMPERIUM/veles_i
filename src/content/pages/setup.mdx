@@ -1,7 +1,6 @@
 import { SetupPath } from "@/features/setup/SetupPath";
 import { EnvExplorer } from "@/features/setup/EnvExplorer";
 import { Checklist } from "@/components/Checklist";
-import { Quiz } from "@/components/Quiz";
 
 # ตั้งค่าวันแรก
 
@@ -118,47 +117,6 @@ import { Quiz } from "@/components/Quiz";
         { id: "read-git", text: "อ่านหน้า Git และรู้ว่าต้องแตก branch จาก develop" },
         { id: "read-code", text: "อ่านหน้าโครงสร้างโค้ด & กฎ" },
       ],
-    },
-  ]}
-/>
-
-## ทดสอบความเข้าใจ
-
-<Quiz
-  questions={[
-    {
-      q: "ไฟล์ .env ควรทำอย่างไร",
-      options: [
-        "commit ขึ้น Git เพื่อให้ทุกคนใช้ค่าเดียวกัน",
-        "ไม่ commit และส่งค่าให้เพื่อนผ่านที่เก็บความลับของทีม",
-        "ส่งต่อทางแชทกลุ่มให้เร็วที่สุด",
-        "ฝังค่าไว้ในโค้ดแทน",
-      ],
-      answer: 1,
-      why: ".env มีความลับ ห้าม commit และห้ามส่งทางแชท ใช้ .env.example เป็นแม่แบบที่ไม่มีค่าจริง",
-    },
-    {
-      q: "ตัวแปรที่ขึ้นต้นด้วย VITE_ ควรใส่ค่าประเภทไหน",
-      options: ["รหัสผ่านฐานข้อมูล", "JWT_SECRET", "ค่าสาธารณะ เช่น ที่อยู่ API หรือ Google client id", "อะไรก็ได้"],
-      answer: 2,
-      why: "ทุกตัวที่ขึ้นต้นด้วย VITE_ ถูกส่งไปอยู่ในเบราว์เซอร์ของผู้ใช้ทุกคน จึงต้องเป็นค่าสาธารณะเท่านั้น",
-    },
-    {
-      q: "server ไม่ยอมเปิดและบอกว่า JWT_SECRET สั้นเกินไป ควรคิดอย่างไร",
-      options: [
-        "เป็นบั๊กของ server ต้องแก้โค้ด",
-        "ตั้งใจให้หยุดทันทีเมื่อค่าตั้งค่าไม่ปลอดภัย ให้แก้ค่าใน .env",
-        "ปิดการตรวจใน env.ts",
-        "ใช้ JWT_SECRET ว่างไปก่อน",
-      ],
-      answer: 1,
-      why: "ระบบตรวจค่าตั้งค่าตอนเริ่มและหยุดทันทีโดยตั้งใจ (fail-fast) JWT_SECRET ต้องยาว 32 ตัวอักษรขึ้นไป ใช้ npm run setup สร้างให้ได้",
-    },
-    {
-      q: "คำสั่งไหนควรรันก่อน push ทุกครั้ง",
-      options: ["npm run dev", "npm run db:seed", "npm run verify", "npm run clean"],
-      answer: 2,
-      why: "verify รัน format, lint, typecheck, test และ build ซึ่งเป็นชุดเดียวกับที่ CI ตรวจ เจอปัญหาในเครื่องเร็วกว่ารอ CI",
     },
   ]}
 />

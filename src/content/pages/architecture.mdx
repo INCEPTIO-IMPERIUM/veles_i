@@ -2,7 +2,6 @@ import { OverviewMap } from "@/features/architecture/OverviewMap";
 import { DetailMap } from "@/features/architecture/DetailMap";
 import { LoginFlow } from "@/features/architecture/LoginFlow";
 import { RequestWalk } from "@/features/architecture/RequestWalk";
-import { Quiz } from "@/components/Quiz";
 
 # สถาปัตยกรรมระบบ
 
@@ -80,43 +79,6 @@ import { Quiz } from "@/components/Quiz";
 | **SQL (ผ่าน Prisma)** | server ↔ ฐานข้อมูล | ภาษาที่ใช้สั่งคลัง | ใช้อยู่ |
 | **HTTP cookie** | server ↔ เบราว์เซอร์ | ลิ้นชักล็อกในเบราว์เซอร์ที่เก็บบัตรสำรอง | ตามแผน |
 | **Server-Sent Events** | server → หน้าเว็บ | คนมาเคาะประตูบอกข่าว | ตามแผน |
-
-## ทดสอบความเข้าใจ
-
-<Quiz
-  questions={[
-    {
-      q: "หน้าเว็บส่งคำขอไปที่ server ด้วยช่องทางอะไร",
-      options: ["TCP + TLS แล้วใช้ SQL", "HTTPS แบบ REST/JSON แนบ JWT", "Server-Sent Events", "OpenID Connect"],
-      answer: 1,
-      why: "client ↔ server ใช้ REST/JSON บน HTTPS และแนบ JWT ใน header ส่วน TCP + TLS กับ SQL คือเส้นระหว่าง server กับฐานข้อมูล",
-    },
-    {
-      q: "Google ทำหน้าที่อะไรในระบบนี้",
-      options: ["เก็บข้อมูลคะแนน", "ยืนยันตัวตนผู้ใช้ แล้วออก ID token ให้ server ตรวจ", "เป็น server ของระบบ", "ส่งอีเมลแจ้งเตือน"],
-      answer: 1,
-      why: "ระบบเข้าสู่ระบบด้วย Google (OpenID Connect) เท่านั้น server ตรวจ ID token ที่ aud, iss และ exp ด้วยกุญแจสาธารณะ (JWKS) ของ Google",
-    },
-    {
-      q: "ตัวไหนเป็นไฟล์เดียวที่ได้เรียก prisma.user ในเส้นทางอนุมัติผู้ใช้",
-      options: ["Controller", "Service", "Repository", "Route"],
-      answer: 2,
-      why: "ทุกการคุยกับ Prisma ต้องผ่าน repository เท่านั้น ดูหน้าโครงสร้างโค้ดเรื่องกฎของแต่ละชั้น",
-    },
-    {
-      q: "ผู้ใช้ส่ง ID token ปลอมมาที่ POST /auth/google ผลเป็นอย่างไร",
-      options: ["ได้ JWT ตามปกติ", "server ตรวจไม่ผ่าน ตอบ 401 และไม่ออก JWT", "ถูกสร้างเป็น ADMIN", "ข้ามไปขั้นตรวจสิทธิ์"],
-      answer: 1,
-      why: "ขั้นตรวจ ID token ล้มเหลว server ปฏิเสธตั้งแต่ตรงนั้น ไม่มีการหาหรือสร้างบัญชี และไม่ออกบัตรผ่าน",
-    },
-    {
-      q: "ข้อไหนในแผนภาพที่ยังไม่พบในโค้ดบน develop",
-      options: ["Fastify และ Prisma", "ตารางผู้ใช้และการอนุมัติ", "Server-Sent Events และ cookie ของ refresh token", "การตรวจ JWT"],
-      answer: 2,
-      why: "SSE และ cookie ของ refresh token วาดไว้ในแผนภาพ แต่ยังไม่มีในโค้ด จึงติดป้าย \"ตามแผน\" ไว้",
-    },
-  ]}
-/>
 
 ## ถัดไป
 

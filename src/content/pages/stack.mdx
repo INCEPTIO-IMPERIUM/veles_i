@@ -1,5 +1,4 @@
 import { StackExplorer } from "@/features/stack/StackExplorer";
-import { Quiz } from "@/components/Quiz";
 
 # Tech Stack
 
@@ -58,47 +57,6 @@ React + TanStack Query เรียก REST ผ่าน `apiClient` (ใส่ 
 ตาราง tech stack ใน `dev.md` ยังเขียนว่า Formatting "ยังไม่ตัดสินใจ", Testing "ยังไม่มี" และ CI/CD "ยังไม่มี" แต่ในโค้ดจริงมี Prettier, Vitest, Playwright และ GitHub Actions ครบแล้ว หน้านี้ยึดตามโค้ด
 
 </Warning>
-
-## ทดสอบความเข้าใจ
-
-<Quiz
-  questions={[
-    {
-      q: "ข้อมูลที่ผู้ใช้เห็นและกดบนหน้าจออยู่ในชั้นไหน",
-      options: ["Client (หน้าบ้าน)", "Server (หลังบ้าน)", "Data (ข้อมูล)", "Delivery (ส่งมอบ)"],
-      answer: 0,
-      why: "ส่วนที่ผู้ใช้เห็นคือหน้าเว็บ (React) ส่วน server คือห้องครัวที่ผู้ใช้มองไม่เห็น",
-    },
-    {
-      q: "Prisma ทำหน้าที่อะไร",
-      options: [
-        "วาดกราฟบนแดชบอร์ด",
-        "เป็นตัวกลางให้โค้ดคุยกับฐานข้อมูล และดูแลประวัติการเปลี่ยนโครงสร้างตาราง",
-        "ตรวจรูปแบบโค้ด",
-        "เก็บรหัสผ่านผู้ใช้",
-      ],
-      answer: 1,
-      why: "Prisma เป็น ORM อยู่ระหว่างโค้ดกับ PostgreSQL ส่วน Recharts วาดกราฟ ESLint ตรวจโค้ด และ argon2 เข้ารหัสรหัสผ่าน",
-    },
-    {
-      q: "ทำไมทีมยังใช้ Prisma 6.19 ทั้งที่มี Prisma 7",
-      options: [
-        "ไม่รู้ว่ามีเวอร์ชัน 7",
-        "Prisma 7 เปลี่ยนวิธีตั้งค่าและบังคับ driver adapter ต้องวางแผนเป็นงานแยก",
-        "Prisma 7 ใช้ไม่ได้กับ PostgreSQL",
-        "เพราะ license",
-      ],
-      answer: 1,
-      why: "ค้างไว้โดยตั้งใจ การอัปเกรดต้องอ่านคู่มือย้ายและวางแผนเป็นงานต่างหาก ไม่ใช่แค่เปลี่ยนเลขเวอร์ชัน",
-    },
-    {
-      q: "ฝั่ง client ควรดึงข้อมูลจาก server อย่างไร",
-      options: ["useEffect แล้ว fetch ในตัว component", "hook ของ TanStack Query ผ่าน apiClient", "เรียก Prisma ตรง", "เก็บทุกอย่างใน Zustand"],
-      answer: 1,
-      why: "TanStack Query จัดการ cache และสถานะโหลด/ผิดพลาดให้ ส่วน Zustand ใช้เก็บสถานะ auth เท่านั้น",
-    },
-  ]}
-/>
 
 ## ถัดไป
 

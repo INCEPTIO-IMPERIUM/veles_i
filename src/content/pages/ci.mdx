@@ -1,5 +1,4 @@
 import { PipelineExplorer } from "@/features/ci/PipelineExplorer";
-import { Quiz } from "@/components/Quiz";
 
 # CI/CD
 
@@ -111,74 +110,6 @@ npm run verify
 ลำดับด้านบนคือ P1 ถึง P6 ของ CMAS ลงโค้ดแล้ว **P1 ป้องกัน, P2 ขนาน, P3 สแกน, P4 E2E, P6 Nightly** ส่วน **P5 CD เลื่อน** เพราะทีมยังไม่เลือกที่ deploy (Railway หรือ Fly.io) การตั้งค่าบน GitHub เอง (ruleset, secret scanning) ต้องให้ admin ของ organization ทำ แก้ในโค้ดแทนไม่ได้
 
 </Example>
-
-## ทดสอบความเข้าใจ
-
-<Quiz
-  questions={[
-    {
-      q: "check ตัวไหนที่กฎของ main และ develop บังคับให้ผ่านก่อน merge",
-      options: ["unit", "CI gate", "build", "ทุก job ต้องตั้งแยกกัน"],
-      answer: 1,
-      why: "CI gate รอทุก job แล้วสรุปผลเป็นตัวเดียว จึงเพิ่มหรือข้าม job ได้โดยไม่ต้องแก้กฎ และ PR ไม่ค้างรอ check ที่ไม่มีวันมา",
-    },
-    {
-      q: "PR นี้แก้แค่ README.md จะเกิดอะไรกับ CI",
-      options: [
-        "ทุก job ถูกข้าม จึง merge ได้ทันที",
-        "job ของแอป (unit, db, build, e2e, docker, codeql) ถูกข้าม แต่ job อย่าง secrets และ static ยังรัน",
-        "รันครบทุก job เหมือนเดิมเสมอ",
-        "CI ล้มเพราะไม่มีโค้ดให้ตรวจ",
-      ],
-      answer: 1,
-      why: "job changes ดูรายชื่อไฟล์แล้วข้ามเฉพาะงานหนักของแอป ส่วนการตรวจที่ไม่ขึ้นกับโค้ดแอปยังรันเสมอ และ gate ถือว่างานที่ถูกข้ามโดยตั้งใจคือผ่าน",
-    },
-    {
-      q: "job db ล้ม ข้อความบอกว่า schema ไม่ตรงกับ migration สาเหตุที่เป็นไปได้ที่สุดคือข้อไหน",
-      options: [
-        "ฐานข้อมูลของ CI ล่ม",
-        "แก้ schema.prisma แล้วลืมสร้าง migration",
-        "มีคน push ตรงเข้า main",
-        "ลืมรัน npm run verify",
-      ],
-      answer: 1,
-      why: "CI replay migration ทั้งหมดบนฐานเปล่าแล้วเทียบกับ schema.prisma ถ้าไม่ตรง แปลว่าแก้ schema โดยไม่มี migration ให้รัน npm run db:migrate:dev",
-    },
-    {
-      q: "job secrets (gitleaks) เจอรหัสผ่านจริงที่เผลอ commit ต้องทำอะไรก่อน",
-      options: [
-        "ลบบรรทัดนั้นแล้ว push ใหม่",
-        "เปลี่ยนหรือ revoke รหัสผ่านนั้นทันที แล้วค่อยลบออกจากโค้ด",
-        "กด Re-run ดูว่าผ่านไหม",
-        "ไม่ต้องทำอะไร เพราะ log ถูกปิดบังไว้แล้ว",
-      ],
-      answer: 1,
-      why: "repo เป็น public ประวัติ commit ยังอยู่ แม้ลบบรรทัดแล้ว ต้องถือว่ารหัสรั่วไปแล้ว",
-    },
-    {
-      q: "ทำไมทีมไม่ตั้งให้ CI retry เองเมื่อ test ล้ม",
-      options: [
-        "เพื่อประหยัดค่าไฟ",
-        "เพราะ retry อัตโนมัติซ่อน test ที่ล้มแบบสุ่ม ทำให้ปัญหาไม่ถูกแก้",
-        "เพราะ GitHub ไม่รองรับ",
-        "เพราะ test ของทีมไม่เคยล้ม",
-      ],
-      answer: 1,
-      why: "test ที่ล้มสุ่มต้องถูกแก้ภายใน 7 วัน ไม่ใช่ถูกซ่อนด้วยการลองใหม่จนกว่าจะผ่าน",
-    },
-    {
-      q: "coverage ต่ำกว่าเกณฑ์ใน job unit ควรแก้อย่างไร",
-      options: [
-        "ลดเกณฑ์ใน vitest.config.ts ให้ผ่าน",
-        "เขียน test เพิ่มให้โค้ดใหม่",
-        "ข้าม job unit ใน PR นี้",
-        "รอให้คนอื่นแก้",
-      ],
-      answer: 1,
-      why: "เกณฑ์เป็น ratchet คือขึ้นได้ ลงไม่ได้ ถ้าจะลดจริงต้องเขียนเหตุผลใน PR",
-    },
-  ]}
-/>
 
 ## อ่านต่อ
 

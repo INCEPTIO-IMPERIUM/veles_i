@@ -1,7 +1,6 @@
 import { FolderTree } from "@/features/code/FolderTree";
 import { LayerExplorer } from "@/features/code/LayerExplorer";
 import { LayerSorter } from "@/features/code/LayerSorter";
-import { Quiz } from "@/components/Quiz";
 
 # โครงสร้างโค้ด & กฎการเขียน
 
@@ -180,63 +179,6 @@ export class CourseApiClient {
 ทุก task ที่ทำเสร็จต้องรายงานเจ้าของโปรเจกต์ ไม่ใช่แค่เปิด PR: (1) ก่อนเริ่มแจ้งในกลุ่มว่าทำอะไร อยู่ branch ไหน (2) เสร็จแล้วส่งสรุป ได้แก่ task, ไฟล์ที่แก้, ลิงก์ PR, สถานะ (3) ติด blocker หรือต้องตัดสินใจเรื่อง scope ให้รายงานทันที (4) สรุปรายสัปดาห์ แม้ไม่มี PR ใหม่
 
 </Example>
-
-## ทดสอบความเข้าใจ
-
-<Quiz
-  questions={[
-    {
-      q: "Service ต้องการข้อมูลรายวิชาจากฐานข้อมูล ควรทำอย่างไร",
-      options: [
-        "เรียก prisma.course.findMany() ใน service ได้เลย",
-        "เรียกผ่าน repository",
-        "ให้ controller query มาให้แล้วส่งต่อ",
-        "เรียกจาก route",
-      ],
-      answer: 1,
-      why: "ห้ามเรียก prisma.* ตรงๆ ใน service หรือ controller ต้องผ่าน repository ซึ่งเป็นไฟล์เดียวที่แตะ Prisma",
-    },
-    {
-      q: "ไฟล์ที่ export ฟังก์ชัน computeCloScore ควรชื่ออะไร",
-      options: ["utils.ts", "helpers.ts", "computeCloScore.ts", "index.ts"],
-      answer: 2,
-      why: "1 ไฟล์ : 1 หน้าที่ ชื่อไฟล์ตรงกับชื่อสิ่งที่ export ส่วน utils.ts ที่รวมของไม่เกี่ยวกันคือสิ่งที่กฎนี้ห้าม",
-    },
-    {
-      q: "ไฟล์ clo.repository.ts ใช้ชื่อเอกพจน์ (clo) ขณะที่ clos.service.ts ใช้พหูพจน์ (clos) เพราะอะไร",
-      options: [
-        "พิมพ์ผิด ควรแก้ให้เหมือนกัน",
-        "repository ตั้งชื่อตาม model ของ Prisma ซึ่งเป็นเอกพจน์ ส่วนไฟล์อื่นใช้ชื่อฟีเจอร์",
-        "เพื่อให้ค้นหาเจอยากขึ้น",
-        "เป็นข้อบังคับของ Fastify",
-      ],
-      answer: 1,
-      why: "กติกา: repository ตามชื่อ model แบบเอกพจน์ (Clo) ส่วน route, controller, service, validator ใช้ชื่อฟีเจอร์",
-    },
-    {
-      q: "ต้องดึงรายชื่อ CLO มาแสดงบนหน้าจอ React ควรทำอย่างไร",
-      options: [
-        "useEffect แล้วเรียก fetch ในตัว component",
-        "ใช้ hook ของ TanStack Query ที่เรียกผ่าน apiClient",
-        "เรียก prisma จากฝั่ง client",
-        "เก็บใน Zustand ทุกอย่าง",
-      ],
-      answer: 1,
-      why: "ห้ามดึงข้อมูลด้วย useEffect หรือ fetch ตรงๆ ใช้ query hook เพื่อได้ cache และ error handling ที่เหมือนกันทุกหน้า Zustand ใช้กับ auth เท่านั้น",
-    },
-    {
-      q: "controller ตรวจ body ด้วย Zod แล้วเจอข้อมูลผิดรูปแบบ ควรทำอย่างไร",
-      options: [
-        "try/catch แล้วตอบ 400 เองใน controller",
-        "ปล่อย ZodError ให้ error-handler แปลงเป็นคำตอบ 400",
-        "ละเลยแล้วไปต่อ",
-        "ให้ repository ตรวจแทน",
-      ],
-      answer: 1,
-      why: "error-handler.middleware.ts แปลง ZodError และ Prisma error เป็นคำตอบรูปแบบเดียวกันอยู่แล้ว ไม่ต้องจับเอง",
-    },
-  ]}
-/>
 
 ## อ่านต่อ
 
